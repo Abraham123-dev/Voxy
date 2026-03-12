@@ -1,6 +1,5 @@
 import Sidebar from './Sidebar';
 import Header from './Header';
-import Footer from './Footer';
 
 export default function DashboardLayout({ children, title }) {
   return (
@@ -12,7 +11,6 @@ export default function DashboardLayout({ children, title }) {
           <div className="flex-1">
             {children}
           </div>
-          <Footer />
         </main>
       </div>
     </div>
