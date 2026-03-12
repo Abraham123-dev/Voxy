@@ -1,63 +1,25 @@
 import React from "react";
 import Link from "next/link";
+import PublicLayout from '@/components/layout/PublicLayout';
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-emerald-500/30 selection:text-emerald-400">
-      {/* Navbar */}
-      <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-black/60 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="size-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 shrink-0" />
-            <span className="text-xl font-bold tracking-tight">
-              LocalVoice <span className="text-emerald-500">AI</span>
-            </span>
-          </div>
-          <div className="hidden items-center gap-8 text-sm font-medium text-zinc-400 md:flex">
-            <a href="#features" className="transition-colors hover:text-white">
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="transition-colors hover:text-white"
-            >
-              How it Works
-            </a>
-            <a href="#pricing" className="transition-colors hover:text-white">
-              Pricing
-            </a>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link 
-              href="/login"
-              className="text-sm font-medium text-zinc-400 transition-colors hover:text-white"
-            >
-              Login
-            </Link>
-            <Link 
-              href="/register"
-              className="rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-black transition-all hover:bg-emerald-400 hover:scale-105 active:scale-95"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <PublicLayout>
+      <div className="min-h-screen bg-black text-white selection:bg-emerald-500/30 selection:text-emerald-400">
+        {/* Hero Section */}
+        <section className="relative flex flex-col items-center justify-center overflow-hidden px-6 pt-32 pb-20 md:pt-48 md:pb-32">
+          {/* Background Gradients */}
+          <div className="absolute top-0 -z-10 h-[600px] w-full bg-[radial-gradient(circle_farthest-side_at_50%_0%,rgba(16,185,129,0.1),transparent)]" />
+          <div className="absolute top-[200px] -z-10 h-[300px] w-full bg-[radial-gradient(circle_farthest-side_at_100%_100%,rgba(20,184,166,0.05),transparent)]" />
 
-      {/* Hero Section */}
-      <section className="relative flex flex-col items-center justify-center overflow-hidden px-6 pt-32 pb-20 md:pt-48 md:pb-32">
-        {/* Background Gradients */}
-        <div className="absolute top-0 -z-10 h-[600px] w-full bg-[radial-gradient(circle_farthest-side_at_50%_0%,rgba(16,185,129,0.1),transparent)]" />
-        <div className="absolute top-[200px] -z-10 h-[300px] w-full bg-[radial-gradient(circle_farthest-side_at_100%_100%,rgba(20,184,166,0.05),transparent)]" />
-
-        <div className="max-w-4xl text-center space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-1.5 text-xs font-semibold text-emerald-400 backdrop-blur-sm animate-fade-in">
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
-            </span>
-            Now supporting 12+ African Languages
-          </div>
+          <div className="max-w-4xl text-center space-y-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-1.5 text-xs font-semibold text-emerald-400 backdrop-blur-sm animate-fade-in">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+              </span>
+              Now supporting 12+ African Languages
+            </div>
 
             <h1 className="text-5xl font-extrabold tracking-tight sm:text-7xl text-slate-900">
               Speak the Language of <br className="hidden md:block" />
@@ -70,23 +32,23 @@ const LandingPage = () => {
               support across Africa.
             </p>
 
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link 
-              href="/register"
-              className="group relative w-full rounded-full bg-emerald-500 px-8 py-4 text-center font-bold text-black transition-all hover:bg-emerald-400 sm:w-auto"
-            >
-              Start Free Trial
-              <span className="absolute inset-0 rounded-full bg-emerald-400 blur transition-all group-hover:blur-lg opacity-20"></span>
-            </Link>
-            <Link 
-              href="/register"
-              className="w-full rounded-full border border-white/10 bg-white/5 px-8 py-4 text-center font-bold transition-all hover:bg-white/10 sm:w-auto text-white"
-            >
-              Book a Demo
-            </Link>
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link 
+                href="/register"
+                className="group relative w-full rounded-full bg-emerald-500 px-8 py-4 text-center font-bold text-black transition-all hover:bg-emerald-400 sm:w-auto"
+              >
+                Start Free Trial
+                <span className="absolute inset-0 rounded-full bg-emerald-400 blur transition-all group-hover:blur-lg opacity-20"></span>
+              </Link>
+              <Link 
+                href="/register"
+                className="w-full rounded-full border border-white/10 bg-white/5 px-8 py-4 text-center font-bold transition-all hover:bg-white/10 sm:w-auto text-white"
+              >
+                Book a Demo
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
         {/* Features Grid */}
         <section id="features" className="mx-auto max-w-7xl px-6 py-24 bg-slate-50">
@@ -144,6 +106,10 @@ const LandingPage = () => {
         </section>
       </div>
     </PublicLayout>
+  );
+};
+
+export default LandingPage;
   );
 };
 
