@@ -59,18 +59,16 @@ const LandingPage = () => {
             Now supporting 12+ African Languages
           </div>
 
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-7xl">
-            Speak the Language of <br className="hidden md:block" />
-            <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-              Your People.
-            </span>
-          </h1>
+            <h1 className="text-5xl font-extrabold tracking-tight sm:text-7xl text-slate-900">
+              Speak the Language of <br className="hidden md:block" />
+              <span className="text-blue-600">Your People.</span>
+            </h1>
 
-          <p className="mx-auto max-w-2xl text-lg text-zinc-400 sm:text-xl">
-            Empower your business with an AI voice assistant that understands
-            local dialects and nuances. Seamlessly handle orders, inquiries, and
-            support across Africa.
-          </p>
+            <p className="mx-auto max-w-2xl text-lg text-slate-600 sm:text-xl">
+              Empower your business with an AI voice assistant that understands
+              local dialects and nuances. Seamlessly handle orders, inquiries, and
+              support across Africa.
+            </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link 
@@ -90,88 +88,62 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section id="features" className="mx-auto max-w-7xl px-6 py-24">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {[
-            {
-              title: "Native Accents",
-              desc: "Deeply trained on Pidgin, Yoruba, Swahili and more. Not just translation - true understanding.",
-              icon: "🌍",
-            },
-            {
-              title: "Lightning Fast",
-              desc: "Optimized response times less than 1s. Keep your customers engaged without the wait.",
-              icon: "⚡",
-            },
-            {
-              title: "Privacy First",
-              desc: "Local processing options available for sensitive business data. Your data stays Yours.",
-              icon: "🛡️",
-            },
-          ].map((feature, i) => (
-            <div
-              key={i}
-              className="group relative rounded-2xl border border-white/5 bg-zinc-900/50 p-8 transition-all hover:border-emerald-500/20 hover:bg-zinc-900"
-            >
-              <div className="mb-4 text-3xl">{feature.icon}</div>
-              <h3 className="mb-3 text-xl font-bold text-white">
-                {feature.title}
-              </h3>
-              <p className="text-zinc-400 leading-relaxed">{feature.desc}</p>
+        {/* Features Grid */}
+        <section id="features" className="mx-auto max-w-7xl px-6 py-24 bg-slate-50">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {[
+              {
+                title: "Native Accents",
+                desc: "Deeply trained on Pidgin, Yoruba, Swahili and more. Not just translation - true understanding.",
+                icon: "🌍",
+              },
+              {
+                title: "Lightning Fast",
+                desc: "Optimized response times less than 1s. Keep your customers engaged without the wait.",
+                icon: "⚡",
+              },
+              {
+                title: "Privacy First",
+                desc: "Local processing options available for sensitive business data. Your data stays Yours.",
+                icon: "🛡️",
+              },
+            ].map((feature, i) => (
+              <div
+                key={i}
+                className="group relative rounded-2xl border border-slate-200 bg-white p-8 transition-all hover:border-blue-500/20 shadow-sm"
+              >
+                <div className="mb-4 text-3xl">{feature.icon}</div>
+                <h3 className="mb-3 text-xl font-bold text-slate-900">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Trust Quote */}
+        <section className="bg-white py-24 border-t border-slate-100">
+          <div className="mx-auto max-w-4xl px-6 text-center">
+            <div className="text-4xl font-serif text-slate-300 mb-8 opacity-50">
+              "
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Trust Quote */}
-      <section className="bg-gradient-to-b from-black to-zinc-950 py-24">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <div className="text-4xl font-serif text-zinc-500 mb-8 opacity-50">
-            "
+            <p className="text-2xl font-light italic text-slate-600 sm:text-3xl">
+              "LocalVoice AI transformed how I handle delivery orders in Lagos. I
+              no longer miss calls during rush hour, and my customers love that it
+              speaks their language."
+            </p>
+            <div className="mt-8 flex flex-col items-center gap-2">
+              <div className="size-12 rounded-full border border-blue-500/20 bg-slate-100" />
+              <span className="font-bold text-slate-900">Emeka Okafor</span>
+              <span className="text-sm text-slate-500 uppercase tracking-widest">
+                Founder, LagosDelights
+              </span>
+            </div>
           </div>
-          <p className="text-2xl font-light italic text-zinc-300 sm:text-3xl">
-            "LocalVoice AI transformed how I handle delivery orders in Lagos. I
-            no longer miss calls during rush hour, and my customers love that it
-            speaks their language."
-          </p>
-          <div className="mt-8 flex flex-col items-center gap-2">
-            <div className="size-12 rounded-full border border-emerald-500/20 bg-zinc-800" />
-            <span className="font-bold">Emeka Okafor</span>
-            <span className="text-sm text-zinc-500 uppercase tracking-widest">
-              Founder, LagosDelights
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/5 py-12 px-6">
-        <div className="mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-2">
-            <div className="size-6 rounded bg-emerald-500" />
-            <span className="text-lg font-bold tracking-tight">
-              LocalVoice AI
-            </span>
-          </div>
-          <div className="flex gap-8 text-sm text-zinc-500">
-            <a href="#" className="hover:text-emerald-400">
-              Terms
-            </a>
-            <a href="#" className="hover:text-emerald-400">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-emerald-400">
-              Contact
-            </a>
-          </div>
-          <p className="text-sm text-zinc-600">
-            &copy; {new Date().getFullYear()} LocalVoice AI. Built for the
-            future of Africa.
-          </p>
-        </div>
-      </footer>
-    </div>
+        </section>
+      </div>
+    </PublicLayout>
   );
 };
 
