@@ -1,29 +1,29 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+import { Inter, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSerif = DM_Serif_Display({
+  variable: "--font-dm-serif",
   subsets: ["latin"],
+  weight: "400",
+  display: "swap",
 });
 
 export const metadata = {
-  title: "Voxy - Multilingual Assistant",
-  description: "AI Voice assistant for small businesses in Africa",
-  icons: {
-    icon: "/favicon.ico",
-  },
+  title: "Voxy AI — Multilingual Voice Assistant for Small Businesses",
+  description:
+    "Voxy converts WhatsApp voice notes in English, Pidgin, and Yoruba into text and generates ready-to-send replies for your business.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${inter.variable} ${dmSerif.variable} antialiased`}>
         {children}
         <Toaster 
           position="top-center"
@@ -56,3 +56,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
