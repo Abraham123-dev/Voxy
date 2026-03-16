@@ -30,7 +30,7 @@ export default function Footer() {
         </div>
 
         {/* Links */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center justify-center flex-wrap gap-x-8 gap-y-4">
           {FOOTER.links.map((link) => (
             <Link
               key={link.href}
@@ -43,7 +43,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <p className="text-[12px] text-voxy-subtle">
+        <p className="text-[12px] text-voxy-subtle text-center md:text-right">
           {FOOTER.copyright}
         </p>
 
