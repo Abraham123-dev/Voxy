@@ -162,9 +162,15 @@ export default function ChatInterface({ business }) {
 
     // 2. Save Customer Message
     try {
-      // Optimistic update (optional, but good for UX)
-      // Actually, Realtime will catch it, but if we want instant we can do it locally too.
-      // But the Realtime payload will contain the DB-generated ID.
+      // Optimistic update for immediate feedback
+      const tempId = Date.now().toString();
+      setMessages(prev => [...prev, {
+        id: tempId,
+        role: 'user',
+        content: text,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'read'
+      }]);
 
       const res = await fetch(`/api/conversations/${conversationId}/messages`, {
         method: 'POST',
@@ -173,18 +179,34 @@ export default function ChatInterface({ business }) {
       });
       const data = await res.json();
       
-      // Note: Realtime handles updating the state for this message as well!
-      // So we don't strictly need setMessages here if subscription works.
+      if (data.success && data.message) {
+        // Swap temp ID with real DB ID
+        setMessages(prev => prev.map(m => m.id === tempId ? {
+          ...m,
+          id: data.message.id,
+          timestamp: new Date(data.message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        } : m));
+      }
       
       // 3. Get Real AI Response
       setIsTyping(true);
       try {
-        await fetch('/api/assistant/chat', {
+        const aiRes = await fetch('/api/assistant/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ conversationId })
         });
-        // Note: Realtime handles updating the UI with the AI's message!
+        const aiData = await aiRes.json();
+        
+        if (aiData.success && aiData.message) {
+          setMessages(prev => [...prev, {
+            id: aiData.message.id,
+            role: 'ai',
+            content: aiData.message.content,
+            timestamp: new Date(aiData.message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: 'read'
+          }]);
+        }
       } catch (err) {
         console.error('AI error:', err);
       } finally {
