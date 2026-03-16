@@ -8,7 +8,7 @@
  *   nav → hero → problem → howItWorks → features → cta → footer
  */
 
-import { Mic, Sparkles, MessageSquare, Globe, Clock, ShieldCheck, Zap } from "lucide-react";
+import { Mic, Bot, MessageSquare, Globe, Clock, ShieldCheck, Zap } from "lucide-react";
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ export const HERO = {
     // The three-step flow rendered in the hero visual
     workflow: [
         { icon: Mic, label: "Voice or Text" },
-        { icon: Sparkles, label: "Voxy AI" },
+        { icon: Bot, label: "Voxy AI" },
         { icon: MessageSquare, label: "Smart Reply" },
     ],
 };
