@@ -12,9 +12,9 @@ export default function CustomerChatHistoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchConversations = async () => {
+    const fetchConversations = async (isInitial = false) => {
       try {
-        setLoading(true);
+        if (isInitial) setLoading(true);
         const res = await fetch('/api/conversations');
         const data = await res.json();
         if (data.success) {
@@ -23,13 +23,13 @@ export default function CustomerChatHistoryPage() {
       } catch (err) {
         console.error('Fetch error:', err);
       } finally {
-        setLoading(false);
+        if (isInitial) setLoading(false);
       }
     };
 
-    fetchConversations();
+    fetchConversations(true);
 
-    const intervalId = setInterval(fetchConversations, 10000);
+    const intervalId = setInterval(() => fetchConversations(false), 10000);
     window.addEventListener('focus', fetchConversations);
 
     return () => {
