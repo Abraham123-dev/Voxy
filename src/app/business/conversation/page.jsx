@@ -91,8 +91,8 @@ export default function ConversationsPage() {
                           {conv.status}
                         </Badge>
                       </div>
-                      <p className="text-zinc-500 font-medium italic truncate max-w-2xl text-sm">
-                        "{conv.snippet}"
+                      <p className="text-zinc-500 font-medium truncate max-w-2xl text-sm mt-1">
+                        {conv.snippet}
                       </p>
                       <div className="flex items-center gap-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest">
                         <div className="flex items-center gap-1.5">
@@ -124,7 +124,7 @@ export default function ConversationsPage() {
                 <div className="size-20 bg-zinc-900 rounded-3xl flex items-center justify-center mx-auto mb-6">
                   <MessageSquare className="w-10 h-10 text-zinc-700" />
                 </div>
-                <h3 className="text-2xl font-display font-black text-white italic">No conversations yet</h3>
+                <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter">No conversations yet</h3>
                 <p className="text-zinc-500 font-medium max-w-sm mx-auto">When customers reach out to your business, they'll appear here.</p>
               </div>
             )}

@@ -12,7 +12,7 @@ export default function Header({ title, onMenuClick }) {
           <Menu className="w-6 h-6" />
         </button>
         <div className="h-4 w-1 bg-[#00D18F] rounded-full hidden sm:block"></div>
-        <h2 className="text-xl sm:text-2xl font-display font-black text-zinc-900 dark:text-white tracking-tighter truncate max-w-[180px] sm:max-w-none italic">
+        <h2 className="text-xl sm:text-2xl font-display font-bold text-zinc-900 dark:text-white tracking-tight truncate max-w-[180px] sm:max-w-none">
           {title}
         </h2>
       </div>

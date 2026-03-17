@@ -154,21 +154,21 @@ export default function SettingsPage() {
       <div className="max-w-5xl mx-auto space-y-12 pb-32">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-5xl font-display font-black text-white italic tracking-tight leading-none">Global <span className="text-[#00D18F]">Control</span></h1>
-            <p className="mt-4 text-zinc-500 text-[11px] font-black uppercase tracking-[0.3em] opacity-60">System configuration and AI behavioral tuning</p>
+            <h1 className="text-5xl font-display font-bold text-white tracking-tight leading-none uppercase tracking-tighter">Settings</h1>
+            <p className="mt-4 text-zinc-500 text-xs font-medium">Configure your business profile and AI assistant behavior.</p>
           </div>
           
           <button
             onClick={handleSave}
             disabled={saving}
-            className="group flex items-center gap-4 bg-[#00D18F] text-black px-10 py-5 rounded-[1.5rem] font-black shadow-[0_20px_40px_rgba(0,209,143,0.2)] hover:scale-105 hover:bg-emerald-400 active:scale-95 transition-all duration-500 disabled:opacity-20 disabled:grayscale"
+            className="group flex items-center gap-3 bg-[#00D18F] text-black px-8 py-4 rounded-xl font-bold hover:bg-emerald-400 active:scale-95 transition-all duration-300 disabled:opacity-50"
           >
             {saving ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
-              <Zap size={20} className="fill-current group-hover:animate-pulse" />
+              <Zap size={18} className="fill-current" />
             )}
-            <span className="text-[11px] uppercase tracking-[0.2em]">{saving ? 'Syncing...' : 'Synchronize Config'}</span>
+            <span className="text-xs uppercase tracking-wider">{saving ? 'Saving...' : 'Save Settings'}</span>
           </button>
         </div>
 
