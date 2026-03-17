@@ -14,17 +14,32 @@ const CATEGORIES = [
   'Other'
 ];
 
+import ImageUpload from './ImageUpload';
+
 const BusinessInfoForm = ({ data, onChange }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     onChange({ ...data, [name]: value });
   };
 
+  const handleLogoUpload = (url) => {
+    onChange({ ...data, logo_url: url });
+  };
+
   return (
     <div className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-4 sm:p-6 backdrop-blur-sm">
       <h3 className="text-lg font-medium text-white mb-6">Business Information</h3>
       
-      <div className="space-y-6">
+      <div className="space-y-8">
+        <div className="pb-6 border-b border-zinc-800">
+          <Label className="text-zinc-300 mb-4 block">Profile Picture</Label>
+          <ImageUpload 
+            currentImage={data.logo_url} 
+            onUpload={handleLogoUpload} 
+          />
+        </div>
+
+        <div className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-zinc-300">Business Name</Label>
           <Input
