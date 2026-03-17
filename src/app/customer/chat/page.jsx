@@ -6,7 +6,6 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, MessageSquare, ChevronRight, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export default function CustomerChatHistoryPage() {
   const [conversations, setConversations] = useState([]);
@@ -29,6 +28,14 @@ export default function CustomerChatHistoryPage() {
     };
 
     fetchConversations();
+
+    const intervalId = setInterval(fetchConversations, 10000);
+    window.addEventListener('focus', fetchConversations);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', fetchConversations);
+    };
   }, []);
 
   return (
@@ -60,7 +67,7 @@ export default function CustomerChatHistoryPage() {
             </div>
           ) : conversations.length > 0 ? (
             conversations.map((chat, idx) => (
-              <Link key={chat.id} href={`/customer/chat/${chat.business_id}`}>
+              <Link key={chat.id} href={`/customer/chat/${chat.id}`}>
                 <div 
                   className="group relative bg-white dark:bg-[#18181b] border border-zinc-100 dark:border-white/5 rounded-[2.5rem] p-6 md:p-8 hover:border-[#00D18F]/30 shadow-sm hover:shadow-2xl hover:shadow-[#00D18F]/5 transition-all duration-500 cursor-pointer animate-in fade-in slide-in-from-bottom-4"
                   style={{ animationDelay: `${idx * 150}ms` }}
@@ -84,11 +91,11 @@ export default function CustomerChatHistoryPage() {
                           </Badge>
                         </div>
                         <span className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em] whitespace-nowrap">
-                          {new Date(chat.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(chat.last_message_at || chat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                       <p className="text-zinc-500 dark:text-zinc-400 text-sm sm:text-base font-medium line-clamp-1 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
-                        Click to continue your chat...
+                        {chat.last_message || 'Click to continue your chat...'}
                       </p>
                     </div>
 
