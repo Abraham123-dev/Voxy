@@ -26,15 +26,15 @@ export default function ConversationPage() {
       try {
         setLoading(true);
         
-        // 1. Fetch Conversation Details
-        const { data: convData, error: convError } = await supabase
-          .from('conversations')
-          .select('*')
-          .eq('id', conversationId)
-          .single();
-
-        if (convError) throw convError;
-        setConversation(convData);
+        // 1. Fetch Conversation Details via API (for name resolution)
+        const convRes = await fetch(`/api/conversations?conversationId=${conversationId}`);
+        const convData = await convRes.json();
+        
+        if (convData.success && convData.conversations.length > 0) {
+          setConversation(convData.conversations[0]);
+        } else {
+          throw new Error('Conversation not found');
+        }
 
         // 2. Fetch Messages via API route
         const res = await fetch(`/api/conversations/${conversationId}/messages`);
