@@ -340,7 +340,9 @@ export default function ChatInterface({ business, userName }) {
                 <div className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] text-[14px] sm:text-[15px] leading-relaxed shadow-2xl transition-all duration-700 hover:scale-[1.01] ${
                   msg.role === "customer"
                     ? "bg-[#00D18F] text-black font-bold rounded-tr-[0.4rem] sm:rounded-tr-[0.5rem] shadow-sm"
-                    : "bg-white/[0.03] text-zinc-100 border border-white/[0.05] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
+                    : msg.role === "owner"
+                      ? "bg-[#00D18F]/10 text-white border border-[#00D18F]/30 rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
+                      : "bg-white/[0.03] text-zinc-100 border border-white/[0.05] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
                 }`}>
                   {msg.content}
                 </div>
