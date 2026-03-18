@@ -6,7 +6,12 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Search, Filter, Languages, Volume2, ChevronRight, MessageSquare, Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+import { useSearchParams } from 'next/navigation';
+
 export default function ConversationsPage() {
+  const searchParams = useSearchParams();
+  const statusFilter = searchParams.get('status');
+  
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,10 +44,16 @@ export default function ConversationsPage() {
     fetchConversations();
   }, []);
 
-  const filteredConversations = conversations.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    c.snippet.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations.filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         c.snippet.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (statusFilter) {
+      return matchesSearch && c.status === statusFilter;
+    }
+    
+    return matchesSearch;
+  });
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -76,6 +87,17 @@ export default function ConversationsPage() {
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-voxy-text tracking-tight">Conversations</h1>
             <p className="text-sm text-voxy-muted">Manage and monitor customer interactions across all channels.</p>
+            {statusFilter && (
+              <div className="pt-2 flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#00D18F]">Active Filter:</span>
+                <div className="flex items-center gap-2 bg-[#00D18F]/10 border border-[#00D18F]/20 px-3 py-1 rounded-full">
+                  <span className="text-[10px] font-bold text-[#00D18F] uppercase tracking-wide">{statusFilter}</span>
+                  <Link href="/business/conversation" className="hover:text-white transition-colors">
+                    <Bot className="size-3 rotate-45" /> {/* Using Bot icon as a placeholder for an X or similar, but maybe just a Link is enough */}
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-3 w-full md:w-auto">
