@@ -16,85 +16,36 @@ export async function GET(req) {
     
     let result;
     if (user.role === 'customer') {
+      const baseQuery = `
+        SELECT c.*, b.name AS business_name, b.slug AS business_slug,
+               lm.content AS last_message,
+               lm.created_at AS last_message_at,
+               lcm.content AS last_customer_message,
+               (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND sender_type IN ('ai', 'owner') AND is_read = false) as unread_count
+        FROM conversations c
+        JOIN businesses b ON c.business_id = b.id
+        LEFT JOIN LATERAL (
+          SELECT content, created_at
+          FROM messages
+          WHERE conversation_id = c.id
+          ORDER BY created_at DESC
+          LIMIT 1
+        ) lm ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT content
+          FROM messages
+          WHERE conversation_id = c.id AND sender_type = 'customer'
+          ORDER BY created_at DESC
+          LIMIT 1
+        ) lcm ON TRUE
+      `;
+
       if (conversationId) {
-        result = await db.query(
-          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
-                  lm.content AS last_message,
-                  lm.created_at AS last_message_at,
-                  lcm.content AS last_customer_message
-           FROM conversations c
-           JOIN businesses b ON c.business_id = b.id
-           LEFT JOIN LATERAL (
-             SELECT content, created_at
-             FROM messages
-             WHERE conversation_id = c.id
-             ORDER BY created_at DESC
-             LIMIT 1
-           ) lm ON TRUE
-           LEFT JOIN LATERAL (
-             SELECT content
-             FROM messages
-             WHERE conversation_id = c.id AND sender_type = 'customer'
-             ORDER BY created_at DESC
-             LIMIT 1
-           ) lcm ON TRUE
-           WHERE c.id = $1 AND c.customer_id = $2
-           LIMIT 1`,
-          [conversationId, user.id]
-        );
+        result = await db.query(`${baseQuery} WHERE c.id = $1 AND c.customer_id = $2 LIMIT 1`, [conversationId, user.id]);
       } else if (businessId) {
-        result = await db.query(
-          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
-                  lm.content AS last_message,
-                  lm.created_at AS last_message_at,
-                  lcm.content AS last_customer_message
-           FROM conversations c
-           JOIN businesses b ON c.business_id = b.id
-           LEFT JOIN LATERAL (
-             SELECT content, created_at
-             FROM messages
-             WHERE conversation_id = c.id
-             ORDER BY created_at DESC
-             LIMIT 1
-           ) lm ON TRUE
-           LEFT JOIN LATERAL (
-             SELECT content
-             FROM messages
-             WHERE conversation_id = c.id AND sender_type = 'customer'
-             ORDER BY created_at DESC
-             LIMIT 1
-           ) lcm ON TRUE
-           WHERE c.customer_id = $1 AND c.business_id = $2
-           ORDER BY c.created_at DESC
-           LIMIT 1`,
-          [user.id, businessId]
-        );
+        result = await db.query(`${baseQuery} WHERE c.customer_id = $1 AND c.business_id = $2 ORDER BY c.created_at DESC LIMIT 1`, [user.id, businessId]);
       } else {
-        result = await db.query(
-          `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
-                  lm.content AS last_message,
-                  lm.created_at AS last_message_at,
-                  lcm.content AS last_customer_message
-           FROM conversations c
-           JOIN businesses b ON c.business_id = b.id
-           LEFT JOIN LATERAL (
-             SELECT content, created_at
-             FROM messages
-             WHERE conversation_id = c.id
-             ORDER BY created_at DESC
-             LIMIT 1
-           ) lm ON TRUE
-           LEFT JOIN LATERAL (
-             SELECT content
-             FROM messages
-             WHERE conversation_id = c.id AND sender_type = 'customer'
-             ORDER BY created_at DESC
-             LIMIT 1
-           ) lcm ON TRUE
-           WHERE c.customer_id = $1
-           ORDER BY COALESCE(lm.created_at, c.created_at) DESC`,
-          [user.id]
-        );
+        result = await db.query(`${baseQuery} WHERE c.customer_id = $1 ORDER BY COALESCE(lm.created_at, c.created_at) DESC`, [user.id]);
       }
     } else {
       let query = `
@@ -102,7 +53,8 @@ export async function GET(req) {
                u.name as actual_customer_name, u.slug as customer_slug,
                lm.content AS last_message,
                lm.created_at AS last_message_at,
-               lcm.content AS last_customer_message
+               lcm.content AS last_customer_message,
+               (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND sender_type = 'customer' AND is_read = false) as unread_count
         FROM conversations c
         JOIN businesses b ON c.business_id = b.id
         LEFT JOIN users u ON c.customer_id = u.id

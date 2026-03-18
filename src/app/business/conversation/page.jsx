@@ -131,8 +131,13 @@ export default function ConversationsPage() {
                   <div className="flex items-center gap-5 min-w-0 flex-1">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
-                      <div className="size-11 rounded-xl bg-voxy-primary/10 flex items-center justify-center text-voxy-primary font-bold text-lg border border-voxy-primary/10">
+                      <div className="size-11 rounded-xl bg-voxy-primary/10 flex items-center justify-center text-voxy-primary font-bold text-lg border border-voxy-primary/10 relative">
                         {conv.name.charAt(0)}
+                        {conv.unread_count > 0 && (
+                          <div className="absolute -top-1.5 -right-1.5 size-5 bg-[#00D18F] text-black text-[10px] font-black rounded-full flex items-center justify-center border-2 border-[#0A0A0A] shadow-lg animate-pulse">
+                            {conv.unread_count}
+                          </div>
+                        )}
                       </div>
                       <div className="absolute -bottom-1 -right-1 p-1 bg-[#0A0A0A] rounded-md border border-[#1A1A1A]">
                         <Volume2 className="w-2.5 h-2.5 text-voxy-primary" />
