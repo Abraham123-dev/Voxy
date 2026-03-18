@@ -203,7 +203,11 @@ export default function ChatInterface({ business, userName }) {
       const res = await fetch(`/api/conversations/${conversationId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: text, senderType: 'customer' })
+        body: JSON.stringify({ 
+          content: text, 
+          senderType: 'customer',
+          setStatus: business?.use_ai_reply === false ? 'Needs Owner Response' : undefined
+        })
       });
       const data = await res.json();
       
@@ -214,50 +218,52 @@ export default function ChatInterface({ business, userName }) {
           status: 'sent'
         } : m));
 
-        setTypingUser('ai');
-        // Broadcast AI is typing
-        channel.send({
-          type: 'broadcast',
-          event: 'typing',
-          payload: { isTyping: true, senderType: 'customer' } // Broadcast to others that AI (triggered by customer) might be processing
-        });
-
-        try {
-          const aiRes = await fetch('/api/assistant/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ conversationId })
-          });
-          const aiData = await aiRes.json();
-          
-          if (aiData.success && aiData.message) {
-            // Add the AI message directly if it's not already there from Realtime
-            const aiMsg = aiData.message;
-            setMessages(prev => {
-              if (prev.find(m => m.id === aiMsg.id)) return prev;
-              
-              // Remove temp AI typing if any
-              setTypingUser(null);
-
-              return [...prev, {
-                id: aiMsg.id,
-                role: aiMsg.sender_type,
-                content: aiMsg.content,
-                timestamp: new Date(aiMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                status: 'read'
-              }];
-            });
-          }
-        } catch (err) {
-          console.error('AI error:', err);
-        } finally {
-          setTypingUser(null);
-          // Broadcast AI stopped typing
+        if (business?.use_ai_reply !== false) {
+          setTypingUser('ai');
+          // Broadcast AI is typing
           channel.send({
             type: 'broadcast',
             event: 'typing',
-            payload: { isTyping: false, senderType: 'customer' }
+            payload: { isTyping: true, senderType: 'customer' } // Broadcast to others that AI (triggered by customer) might be processing
           });
+
+          try {
+            const aiRes = await fetch('/api/assistant/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ conversationId })
+            });
+            const aiData = await aiRes.json();
+            
+            if (aiData.success && aiData.message) {
+              // Add the AI message directly if it's not already there from Realtime
+              const aiMsg = aiData.message;
+              setMessages(prev => {
+                if (prev.find(m => m.id === aiMsg.id)) return prev;
+                
+                // Remove temp AI typing if any
+                setTypingUser(null);
+
+                return [...prev, {
+                  id: aiMsg.id,
+                  role: aiMsg.sender_type,
+                  content: aiMsg.content,
+                  timestamp: new Date(aiMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  status: 'read'
+                }];
+              });
+            }
+          } catch (err) {
+            console.error('AI error:', err);
+          } finally {
+            setTypingUser(null);
+            // Broadcast AI stopped typing
+            channel.send({
+              type: 'broadcast',
+              event: 'typing',
+              payload: { isTyping: false, senderType: 'customer' }
+            });
+          }
         }
       }
     } catch (err) {
@@ -338,9 +344,11 @@ export default function ChatInterface({ business, userName }) {
           >
             <div className={`flex gap-3 sm:gap-5 max-w-[90%] sm:max-w-[75%] ${msg.role === "customer" ? "flex-row-reverse" : "flex-row"}`}>
               <div className={`size-8 sm:size-10 rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center border shadow-xl overflow-hidden ${
-                msg.role === "ai" || msg.role === "owner"
+                msg.role === "ai"
                   ? "bg-[#00D18F]/5 border-[#00D18F]/20 text-[#00D18F]"
-                  : "bg-white/5 border-white/5 text-zinc-500"
+                  : msg.role === "owner"
+                    ? "bg-blue-500/10 border-blue-500/20 text-blue-500"
+                    : "bg-white/5 border-white/5 text-zinc-500"
               }`}>
                 {msg.role === "ai" ? (
                   <img src="/favicon.jpg" alt="Voxy AI" className="size-full object-cover" />
@@ -353,15 +361,17 @@ export default function ChatInterface({ business, userName }) {
 
               <div className={`flex flex-col space-y-1 ${msg.role === "customer" ? "items-end" : "items-start"}`}>
                 <div className={`flex items-center gap-3 px-1 mb-0.5 ${msg.role === "customer" ? "flex-row-reverse" : ""}`}>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
-                    {msg.role === 'customer' ? (userName || 'You') : msg.role === 'owner' ? business?.name || 'Owner' : 'VOXY AI'}
+                  <span className={`text-[10px] font-black uppercase tracking-wider ${
+                    msg.role === "owner" ? "text-blue-400" : msg.role === "ai" ? "text-[#00D18F]" : "text-zinc-500"
+                  }`}>
+                    {msg.role === 'customer' ? (userName || 'You') : msg.role === 'owner' ? business?.name || 'Owner' : 'Voxier AI'}
                   </span>
                 </div>
                 <div className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] text-[14px] sm:text-[15px] leading-relaxed shadow-2xl transition-all duration-700 hover:scale-[1.01] ${
                   msg.role === "customer"
                     ? "bg-[#00D18F] text-black font-bold rounded-tr-[0.4rem] sm:rounded-tr-[0.5rem] shadow-sm"
                     : msg.role === "owner"
-                      ? "bg-[#00D18F]/10 text-white border border-[#00D18F]/30 rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
+                      ? "bg-blue-500/10 text-white border border-blue-500/30 rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
                       : "bg-white/[0.03] text-zinc-100 border border-white/[0.05] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
                 }`}>
                   {msg.content}
@@ -380,7 +390,11 @@ export default function ChatInterface({ business, userName }) {
         {typingUser && (
           <div className="flex justify-start animate-in fade-in duration-500">
             <div className="flex gap-3 sm:gap-5">
-               <div className="size-8 sm:size-10 rounded-lg sm:rounded-xl bg-[#00D18F]/5 border border-[#00D18F]/20 text-[#00D18F] flex items-center justify-center shadow-2xl overflow-hidden">
+               <div className={`size-8 sm:size-10 rounded-lg sm:rounded-xl flex items-center justify-center shadow-2xl overflow-hidden border ${
+                 typingUser === "ai" 
+                  ? "bg-[#00D18F]/5 border-[#00D18F]/20 text-[#00D18F]" 
+                  : "bg-blue-500/10 border-blue-500/20 text-blue-500"
+               }`}>
                 {typingUser === 'ai' ? (
                   <img src="/favicon.jpg" alt="Voxy AI" className="size-full object-cover" />
                 ) : typingUser === 'owner' ? (
@@ -389,10 +403,14 @@ export default function ChatInterface({ business, userName }) {
                   <User className="size-3.5 sm:size-4" />
                 )}
               </div>
-              <div className="bg-white/[0.03] border border-white/[0.05] px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem] flex items-center gap-1.5 sm:gap-2">
-                <span className="size-1 sm:size-1.5 bg-[#00D18F] rounded-full animate-bounce [animation-delay:-0.3s] shadow-[0_0_8px_#00D18F]"></span>
-                <span className="size-1 sm:size-1.5 bg-[#00D18F] rounded-full animate-bounce [animation-delay:-0.15s] shadow-[0_0_8px_#00D18F]"></span>
-                <span className="size-1 sm:size-1.5 bg-[#00D18F] rounded-full animate-bounce shadow-[0_0_8px_#00D18F]"></span>
+              <div className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem] flex items-center gap-1.5 sm:gap-2 border ${
+                typingUser === "ai" 
+                  ? "bg-white/[0.03] border-white/[0.05]" 
+                  : "bg-blue-500/10 border-blue-500/30"
+              }`}>
+                <span className={`size-1 sm:size-1.5 rounded-full animate-bounce [animation-delay:-0.3s] shadow-[0_0_8px_currentColor] ${typingUser === "ai" ? "bg-[#00D18F] text-[#00D18F]" : "bg-blue-400 text-blue-400"}`}></span>
+                <span className={`size-1 sm:size-1.5 rounded-full animate-bounce [animation-delay:-0.15s] shadow-[0_0_8px_currentColor] ${typingUser === "ai" ? "bg-[#00D18F] text-[#00D18F]" : "bg-blue-400 text-blue-400"}`}></span>
+                <span className={`size-1 sm:size-1.5 rounded-full animate-bounce shadow-[0_0_8px_currentColor] ${typingUser === "ai" ? "bg-[#00D18F] text-[#00D18F]" : "bg-blue-400 text-blue-400"}`}></span>
               </div>
             </div>
           </div>

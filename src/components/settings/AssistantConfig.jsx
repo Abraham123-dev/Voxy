@@ -17,9 +17,29 @@ const AssistantConfig = ({ data, onChange }) => {
 
   return (
     <div className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-4 sm:p-6 backdrop-blur-sm shadow-sm">
-      <div className="flex items-center gap-2 mb-6">
-        <Bot className="w-5 h-5 text-[#00D18F]" />
-        <h3 className="text-lg font-medium text-white">Assistant Configuration</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <Bot className="w-5 h-5 text-[#00D18F]" />
+          <h3 className="text-lg font-medium text-white">Assistant Configuration</h3>
+        </div>
+        
+        <label className="flex items-center cursor-pointer group">
+          <div className="relative">
+            <input 
+              type="checkbox" 
+              className="sr-only" 
+              checked={data.use_ai_reply !== false}
+              onChange={(e) => onChange({ ...data, use_ai_reply: e.target.checked })}
+            />
+            <div className={`block w-11 h-6 rounded-full transition-colors duration-300 ${data.use_ai_reply !== false ? 'bg-[#00D18F]' : 'bg-zinc-700 group-hover:bg-zinc-600'}`}></div>
+            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 shadow-sm ${data.use_ai_reply !== false ? 'translate-x-5' : 'translate-x-0'}`}></div>
+          </div>
+          <div className="ml-3 text-sm font-medium">
+            <span className={data.use_ai_reply !== false ? 'text-[#00D18F]' : 'text-zinc-400'}>
+              {data.use_ai_reply !== false ? 'AI Active' : 'AI Paused'}
+            </span>
+          </div>
+        </label>
       </div>
       
       <div className="space-y-6">
