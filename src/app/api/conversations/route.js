@@ -168,23 +168,29 @@ export async function POST(req) {
 
     // Check if this customer already has a conversation with this business.
     const existing = await db.query(
-      'SELECT id FROM conversations WHERE customer_id = $1 AND business_id = $2 LIMIT 1',
+      'SELECT id, ai_enabled FROM conversations WHERE customer_id = $1 AND business_id = $2 LIMIT 1',
       [user.id, businessId]
     );
 
     if (existing.rowCount > 0) {
-      return NextResponse.json({ success: true, id: existing.rows[0].id, message: "Existing conversation found" });
+      return NextResponse.json({ 
+        success: true, 
+        id: existing.rows[0].id, 
+        ai_enabled: existing.rows[0].ai_enabled,
+        message: "Existing conversation found" 
+      });
     }
 
     const result = await db.query(
-      'INSERT INTO conversations (customer_id, business_id, status) VALUES ($1, $2, $3) RETURNING id',
-      [user.id, businessId, 'AI Responding']
+      'INSERT INTO conversations (customer_id, business_id, status, ai_enabled) VALUES ($1, $2, $3, $4) RETURNING id, ai_enabled',
+      [user.id, businessId, 'AI Responding', true]
     );
 
     return NextResponse.json({ 
       success: true, 
       message: "Conversation started", 
-      id: result.rows[0].id 
+      id: result.rows[0].id,
+      ai_enabled: result.rows[0].ai_enabled
     }, { status: 201 });
   } catch (error) {
     console.error('API Error:', error);

@@ -181,6 +181,21 @@ export default function ChatInterface({ business, userName }) {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `id=eq.${conversationId}`
+        },
+        (payload) => {
+          if (payload.new.ai_enabled !== undefined) {
+            console.log(`[REALTIME-AI] Syncing AI enabled state: ${payload.new.ai_enabled}`);
+            setIsAiEnabled(payload.new.ai_enabled);
+          }
+        }
+      )
       .on('broadcast', { event: 'typing' }, (payload) => {
         if (payload.payload.isTyping) {
           setTypingUser(payload.payload.senderType);

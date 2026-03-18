@@ -11,6 +11,8 @@ export async function PATCH(req, { params }) {
 
     const { id } = await params;
     const { ai_enabled } = await req.json();
+    
+    console.log(`[PATCH-AI] Toggling AI for conversation ${id} to ${ai_enabled}`);
 
     if (typeof ai_enabled !== 'boolean') {
       return NextResponse.json({ success: false, error: 'ai_enabled must be a boolean' }, { status: 400 });

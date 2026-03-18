@@ -36,7 +36,9 @@ export async function POST(req) {
     const conv = conversationRes.rows[0];
 
     // 1b. Check if AI is enabled for this conversation
+    console.log(`[AI-CHAT] Conversation AI state: ${conv.ai_enabled}`);
     if (conv.ai_enabled === false) {
+      console.log(`[AI-CHAT] AI is DISABLED for conversation ${conversationId}. Skipping response.`);
       return NextResponse.json({ 
         success: true, 
         message: null,
