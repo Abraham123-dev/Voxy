@@ -50,15 +50,6 @@ export default function CustomerSettingsPage() {
       bg: "bg-red-400/10",
       href: "/customer/settings/security"
     },
-    {
-      id: "notifications",
-      title: "Notifications",
-      subtitle: "Configure alerts and signals",
-      icon: Bell,
-      color: "text-[#00D18F]",
-      bg: "bg-[#00D18F]/10",
-      href: "/customer/settings/notifications"
-    },
   ];
 
   if (loading) {

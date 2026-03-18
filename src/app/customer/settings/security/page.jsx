@@ -54,16 +54,6 @@ export default function CustomerSecurityPage() {
           </div>
         </div>
 
-        <div className="bg-[#00D18F]/5 border border-[#00D18F]/10 rounded-3xl p-6 flex items-start gap-4">
-            <div className="p-2 bg-[#00D18F]/10 rounded-xl text-[#00D18F]">
-                <ShieldCheck size={20} />
-            </div>
-            <div>
-                <h3 className="text-sm font-bold text-white mb-1">Two-Factor Authentication</h3>
-                <p className="text-xs text-zinc-500 leading-relaxed">Boost your security by requiring a code from your mobile device upon login. (Coming Soon)</p>
-            </div>
-        </div>
-
         <form onSubmit={handleUpdatePassword} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
