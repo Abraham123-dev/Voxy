@@ -275,6 +275,43 @@ export default function ChatInterface({ business, userName }) {
     setInputValue(text);
   };
 
+  const [showMenu, setShowMenu] = useState(false);
+  const [useAi, setUseAi] = useState(business?.use_ai_reply !== false);
+
+  const toggleAi = async () => {
+    try {
+      const newVal = !useAi;
+      setUseAi(newVal);
+      await fetch('/api/businesses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ...business,
+          use_ai_reply: newVal 
+        })
+      });
+    } catch (err) {
+      console.error('Toggle AI error:', err);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!conversationId) return;
+    if (!confirm("Are you sure you want to clear your chat history? This only clears it for you.")) return;
+    
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/clear`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        setMessages([]);
+        setShowMenu(false);
+      }
+    } catch (err) {
+      console.error('Clear chat error:', err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-6 bg-black rounded-[3rem] border border-white/5">
@@ -330,8 +367,36 @@ export default function ChatInterface({ business, userName }) {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-3 relative z-10">
-          <Button variant="ghost" size="icon" className="rounded-xl sm:rounded-2xl hover:bg-white/5 text-zinc-500 h-9 w-9 sm:h-11 sm:w-11"><Volume2 className="w-4 h-4 sm:w-5 sm:h-5" /></Button>
-          <Button variant="ghost" size="icon" className="rounded-xl sm:rounded-2xl hover:bg-white/5 text-zinc-500 h-9 w-9 sm:h-11 sm:w-11"><MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" /></Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleAi}
+            className={`rounded-xl sm:rounded-2xl hover:bg-white/5 h-9 w-9 sm:h-11 sm:w-11 transition-colors ${useAi ? 'text-[#00D18F]' : 'text-zinc-500'}`}
+          >
+            <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+          
+          <div className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowMenu(!showMenu)}
+              className="rounded-xl sm:rounded-2xl hover:bg-white/5 text-zinc-500 h-9 w-9 sm:h-11 sm:w-11"
+            >
+              <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
+            </Button>
+            
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                <button 
+                  onClick={handleClearChat}
+                  className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-red-500 hover:bg-white/5 transition-colors"
+                >
+                  Clear Chat
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

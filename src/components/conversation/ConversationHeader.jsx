@@ -1,7 +1,10 @@
-import React from 'react';
-import { Clock, User, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, User, ShieldCheck, Bot, MoreVertical } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-const ConversationHeader = ({ customerName, status, startTime }) => {
+const ConversationHeader = ({ customerName, status, startTime, useAi, onToggleAi, onClearChat }) => {
+  const [showMenu, setShowMenu] = useState(false);
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'AI Responding':
@@ -42,8 +45,42 @@ const ConversationHeader = ({ customerName, status, startTime }) => {
         </div>
       </div>
 
-      <div className="hidden sm:flex items-center gap-2">
-         <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-[#1A1A1A] rounded-lg text-[9px] font-bold text-voxy-muted uppercase tracking-widest">
+      <div className="flex items-center gap-2">
+         <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onToggleAi}
+            className={`rounded-lg hover:bg-white/5 h-9 w-9 transition-colors ${useAi ? 'text-[#00D18F]' : 'text-zinc-500'}`}
+          >
+            <Bot className="w-4 h-4" />
+          </Button>
+
+          <div className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowMenu(!showMenu)}
+              className="rounded-lg hover:bg-white/5 text-zinc-500 h-9 w-9"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+            
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                <button 
+                  onClick={() => {
+                    onClearChat();
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-red-500 hover:bg-white/5 transition-colors"
+                >
+                  Clear Chat
+                </button>
+              </div>
+            )}
+          </div>
+
+         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-[#1A1A1A] rounded-lg text-[9px] font-bold text-voxy-muted uppercase tracking-widest">
             <span className="size-1 rounded-full bg-emerald-500 animate-pulse" />
             Encrypted
          </div>
