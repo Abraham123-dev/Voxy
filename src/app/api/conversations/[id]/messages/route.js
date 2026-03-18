@@ -11,10 +11,26 @@ export async function GET(req, { params }) {
 
     const { id } = await params;
 
+    // 1. Fetch messages
     const result = await db.query(
       'SELECT * FROM messages WHERE conversation_id = $1 AND NOT ($2 = ANY(COALESCE(hidden_for, \'{}\'))) ORDER BY created_at ASC',
       [id, user.id]
     );
+
+    // 2. Mark messages sent TO this user as read
+    // If user is owner, mark messages from customer as read
+    // If user is customer, mark messages from ai or owner as read
+    if (user.role === 'customer') {
+      await db.query(
+        "UPDATE messages SET is_read = true WHERE conversation_id = $1 AND sender_type IN ('ai', 'owner')",
+        [id]
+      );
+    } else {
+      await db.query(
+        "UPDATE messages SET is_read = true WHERE conversation_id = $1 AND sender_type = 'customer'",
+        [id]
+      );
+    }
 
     return NextResponse.json({ success: true, messages: result.rows });
   } catch (error) {
