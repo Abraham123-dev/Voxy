@@ -224,9 +224,28 @@ export default function ChatInterface({ business, userName }) {
         });
 
         if (data.audioUrl) {
+          // STOP any previous audio before playing new one
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            audioRef.current = null;
+          }
+
           const audio = new Audio(data.audioUrl);
           audioRef.current = audio;
           
+          const cleanupAudio = async (url) => {
+            try {
+              await fetch('/api/voice', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+              });
+            } catch (err) {
+              console.warn('Silent audio cleanup failure:', err);
+            }
+          };
+
           // Use canplaythrough for more immediate playback once buffered
           audio.oncanplaythrough = async () => {
             try {
@@ -241,11 +260,15 @@ export default function ChatInterface({ business, userName }) {
           audio.onended = () => {
             setVoiceStatus(null);
             setPendingAudioUrl(null);
+            cleanupAudio(data.audioUrl);
+            audioRef.current = null;
           };
 
           audio.onerror = () => {
             console.error('Audio playback error for:', data.audioUrl);
             setVoiceStatus(null);
+            cleanupAudio(data.audioUrl);
+            audioRef.current = null;
           };
         }
       } else {
@@ -330,8 +353,15 @@ export default function ChatInterface({ business, userName }) {
             <button
               onClick={() => {
                 const audio = new Audio(pendingAudioUrl);
+                audio.onended = () => {
+                  fetch('/api/voice', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: pendingAudioUrl })
+                  }).catch(() => {});
+                  setPendingAudioUrl(null);
+                };
                 audio.play();
-                setPendingAudioUrl(null);
               }}
               className="px-4 py-2 rounded-full bg-[#00D18F] text-black text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-xl"
             >

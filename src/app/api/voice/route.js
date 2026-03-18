@@ -165,3 +165,25 @@ export async function POST(req) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req) {
+  try {
+    const { url } = await req.json();
+    if (!url || !url.startsWith('/temp_voice/')) {
+      return NextResponse.json({ success: false, error: 'Invalid URL' }, { status: 400 });
+    }
+
+    const fileName = url.replace('/temp_voice/', '');
+    const filePath = path.join(process.cwd(), 'public', 'temp_voice', fileName);
+
+    if (fs.existsSync(filePath)) {
+      await fsPromises.unlink(filePath);
+      console.log(`[VOICE] Manually deleted ${fileName}`);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Voice Delete Error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
