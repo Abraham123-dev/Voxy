@@ -34,8 +34,8 @@ export async function buildBusinessSummary(businessId) {
   }
 
   const compressionPrompt = `
-Compress the following business profile into a dense, AI-friendly system prompt (max 100-150 tokens). 
-Include exactly: name, category, core description, business hours/availability, tone, and key assistant instructions. 
+Compress the following business profile into a dense, AI-friendly system prompt (max 80-100 tokens). 
+Include exactly: name, category, short description, business hours, tone, and key assistant instructions. 
 Do not talk in the first person. Output ONLY the compressed summary.
 
 Name: ${b.name}
@@ -57,6 +57,8 @@ Instructions: ${b.assistant_instructions}
     console.error('Error generating AI business summary:', error);
     // fallback if AI fails
     aiSummary = `${b.name} (${b.category}). ${b.description}. Hours: ${hoursStr}. Tone: ${b.assistant_tone}. Rules: ${b.assistant_instructions}`;
+    // Truncate fallback to stay near limit
+    if (aiSummary.length > 500) aiSummary = aiSummary.substring(0, 500) + '...';
     await db.query('UPDATE businesses SET ai_summary = $1 WHERE id = $2', [aiSummary, businessId]);
     return aiSummary;
   }

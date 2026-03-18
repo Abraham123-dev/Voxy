@@ -4,11 +4,16 @@ import { getUserFromCookie } from '@/lib/auth';
 
 export async function GET(req, { params }) {
   try {
+    const user = await getUserFromCookie();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const result = await db.query(
-      'SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC',
-      [id]
+      'SELECT * FROM messages WHERE conversation_id = $1 AND NOT ($2 = ANY(COALESCE(hidden_for, \'{}\'))) ORDER BY created_at ASC',
+      [id, user.id]
     );
 
     return NextResponse.json({ success: true, messages: result.rows });

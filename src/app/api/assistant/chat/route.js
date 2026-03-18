@@ -35,6 +35,15 @@ export async function POST(req) {
 
     const conv = conversationRes.rows[0];
 
+    // 1b. Check if AI is enabled for this conversation
+    if (conv.ai_enabled === false) {
+      return NextResponse.json({ 
+        success: true, 
+        message: null,
+        info: 'AI is disabled for this conversation.'
+      });
+    }
+
     // Check if we need to summarize first (e.g. if conversation has grown large)
     let convSummary = conv.summary;
     if (!convSummary) {
@@ -42,8 +51,13 @@ export async function POST(req) {
       if (convSummary) conv.summary = convSummary; // Update local ref
     }
 
-    // 2. Fetch recent message history (last 5 messages)
-    const chatHistory = await getRecentMessages(conversationId, 5);
+    // 2. Fetch recent message history
+    // Requirement: If messages > 10 (summary exists), send summary + last 2–3 messages.
+    // Otherwise send last 5 messages.
+    let limit = 5;
+    if (convSummary) limit = 3;
+
+    const chatHistory = await getRecentMessages(conversationId, limit);
     const lastMessage = chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].content : '';
 
     // 3. Determine if we need full business context injected into System Prompt

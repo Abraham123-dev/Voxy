@@ -133,6 +133,36 @@ export default function ConversationPage({ params }) {
     };
   }, [conversation?.id]);
 
+  const handleToggleAi = async (checked) => {
+    if (!conversation?.id) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversation.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ai_enabled: checked })
+      });
+      if (res.ok) {
+        setConversation(prev => ({ ...prev, ai_enabled: checked }));
+      }
+    } catch (err) {
+      console.error('Toggle AI error:', err);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!conversation?.id || !confirm('Are you sure you want to clear this chat history?')) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversation.id}/clear`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error('Clear chat error:', err);
+    }
+  };
+
   const handleTyping = (isTyping) => {
     if (!conversation?.id) return;
     supabase.channel(`chat:${conversation.id}`).send({
@@ -187,7 +217,7 @@ export default function ConversationPage({ params }) {
     return (
       <DashboardLayout title="Conversation">
         <div className="flex items-center justify-center h-[60vh]">
-          <div className="w-8 h-8 border-2 border-voxy-primary/20 border-t-voxy-primary rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#00D18F]/20 border-t-[#00D18F] rounded-full animate-spin" />
         </div>
       </DashboardLayout>
     );
@@ -204,12 +234,16 @@ export default function ConversationPage({ params }) {
           customerName={conversation?.customer_name}
           status={isCustomerOnline ? 'Active Now' : (conversation?.status || 'Offline')}
           startTime={conversation?.created_at}
+          aiEnabled={conversation?.ai_enabled ?? true}
+          onToggleAi={handleToggleAi}
+          onClear={handleClearChat}
         />
         
         <MessageList 
           messages={messages} 
           isTyping={isAiTyping} 
           typingAvatar={conversation?.customer_name?.charAt(0) || 'C'}
+          businessName={conversation?.business_name}
         />
         
         <MessageInput 

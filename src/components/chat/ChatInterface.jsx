@@ -15,10 +15,12 @@ import {
   ChevronLeft,
   Loader2,
   Volume2,
-  ShieldCheck
+  ShieldCheck,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -39,6 +41,7 @@ export default function ChatInterface({ business, userName }) {
   const [loading, setLoading] = useState(true);
   const [isBusinessOnline, setIsBusinessOnline] = useState(false);
   const [typingUser, setTypingUser] = useState(null); // 'ai' or 'owner' or null
+  const [isAiEnabled, setIsAiEnabled] = useState(true);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -64,6 +67,7 @@ export default function ChatInterface({ business, userName }) {
         
         if (data.success && data.id) {
           setConversationId(data.id);
+          setIsAiEnabled(data.ai_enabled ?? true);
           
           const msgRes = await fetch(`/api/conversations/${data.id}/messages`);
           const msgData = await msgRes.json();
@@ -95,6 +99,36 @@ export default function ChatInterface({ business, userName }) {
 
     initChat();
   }, [business?.id]);
+
+  const handleToggleAi = async (checked) => {
+    if (!conversationId) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ai_enabled: checked })
+      });
+      if (res.ok) {
+        setIsAiEnabled(checked);
+      }
+    } catch (err) {
+      console.error('Toggle AI error:', err);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!conversationId || !confirm('Are you sure you want to clear your chat history?')) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/clear`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error('Clear chat error:', err);
+    }
+  };
 
   useEffect(() => {
     if (!conversationId) return;
@@ -218,7 +252,8 @@ export default function ChatInterface({ business, userName }) {
           status: 'sent'
         } : m));
 
-        if (business?.use_ai_reply !== false) {
+        // Only trigger AI if toggled ON
+        if (isAiEnabled && business?.use_ai_reply !== false) {
           setTypingUser('ai');
           // Broadcast AI is typing
           channel.send({
@@ -329,8 +364,12 @@ export default function ChatInterface({ business, userName }) {
           </Link>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-3 relative z-10">
-          <Button variant="ghost" size="icon" className="rounded-xl sm:rounded-2xl hover:bg-white/5 text-zinc-500 h-9 w-9 sm:h-11 sm:w-11"><Volume2 className="w-4 h-4 sm:w-5 sm:h-5" /></Button>
+        <div className="flex items-center gap-3 sm:gap-4 relative z-10">
+          <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">AI</span>
+            <Switch checked={isAiEnabled} onCheckedChange={handleToggleAi} />
+          </div>
+          <Button variant="ghost" size="icon" onClick={handleClearChat} className="rounded-xl sm:rounded-2xl hover:bg-red-500/10 text-zinc-500 hover:text-red-400 h-9 w-9 sm:h-11 sm:w-11"><Trash2 className="w-4 h-4 sm:w-5 sm:h-5" /></Button>
           <Button variant="ghost" size="icon" className="rounded-xl sm:rounded-2xl hover:bg-white/5 text-zinc-500 h-9 w-9 sm:h-11 sm:w-11"><MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" /></Button>
         </div>
       </div>
@@ -351,7 +390,7 @@ export default function ChatInterface({ business, userName }) {
                     : "bg-white/5 border-white/5 text-zinc-500"
               }`}>
                 {msg.role === "ai" ? (
-                  <img src="/favicon.jpg" alt="Voxy AI" className="size-full object-cover" />
+                  <img src="/favicon.jpg" alt="VOXY AI" className="size-full object-cover" />
                 ) : msg.role === "owner" ? (
                   <img src={business?.logo_url || "/favicon.jpg"} alt={business?.name || "Merchant"} className="size-full object-cover" />
                 ) : (
