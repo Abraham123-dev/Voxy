@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import { Send, Paperclip, X, Mic } from 'lucide-react';
+import React, { useState, useRef, useMemo } from 'react';
+import { Send, Paperclip, X, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoiceButton } from '@/components/chat/VoiceButton';
 
@@ -64,9 +64,16 @@ const MessageInput = ({
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Only image files are allowed');
+      return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB');
+      return;
+    }
+    setSelectedFile(file);
   };
 
   const removeFile = () => {
@@ -92,13 +99,19 @@ const MessageInput = ({
         </div>
       )}
 
-      {/* Selected File Chip */}
+      {/* Selected Image Preview */}
       {selectedFile && (
         <div className="max-w-5xl mx-auto mb-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-zinc-300">
-            <Paperclip className="size-3 text-[#00D18F]" />
-            <span className="truncate max-w-[200px]">{selectedFile.name}</span>
-            <button onClick={removeFile} className="text-zinc-500 hover:text-white transition-colors">
+          <div className="relative inline-block rounded-xl overflow-hidden border border-white/10 bg-white/5">
+            <img
+              src={URL.createObjectURL(selectedFile)}
+              alt="Preview"
+              className="max-h-32 max-w-[200px] object-cover rounded-xl"
+            />
+            <button
+              onClick={removeFile}
+              className="absolute top-1 right-1 p-1 bg-black/70 rounded-full text-zinc-300 hover:text-white transition-colors"
+            >
               <X className="size-3.5" />
             </button>
           </div>
@@ -124,7 +137,7 @@ const MessageInput = ({
             ref={fileInputRef}
             onChange={handleFileSelect}
             className="hidden"
-            accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx"
+            accept="image/*"
           />
           
           <textarea

@@ -335,16 +335,62 @@ export default function ChatInterface({ business, userName }) {
   };
 
   const handleFileUpload = async (file) => {
-    if (!conversationId) return;
-    // Placeholder for future file handling — send as message for now
+    if (!conversationId || isSending) return;
+    
+    setIsSending(true);
     const tempId = 'temp-' + Date.now();
+    const previewUrl = URL.createObjectURL(file);
+
+    // Optimistic UI — show preview immediately
     setMessages(prev => [...prev, {
       id: tempId,
       role: 'customer',
-      content: `📎 Sent file: ${file.name}`,
+      content: `[img]${previewUrl}`,
       created_at: new Date().toISOString(),
-      status: 'read'
+      status: 'sending'
     }]);
+
+    try {
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `chat-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Save as message with [img] prefix
+      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `[img]${publicUrl}`,
+          senderType: 'customer'
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setMessages(prev => prev.map(m => m.id === tempId ? {
+          ...m,
+          id: data.message.id,
+          content: `[img]${publicUrl}`,
+          status: 'sent'
+        } : m));
+      }
+    } catch (err) {
+      console.error('Image upload error:', err);
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    } finally {
+      setIsSending(false);
+    }
   };
 
   if (loading) {

@@ -29,7 +29,6 @@ export default function ConversationPage({ params }) {
       try {
         setLoading(true);
         
-        // 1. Fetch Conversations to find the one with this customerSlug
         const convRes = await fetch(`/api/conversations`);
         const convData = await convRes.json();
         
@@ -38,7 +37,6 @@ export default function ConversationPage({ params }) {
           if (found) {
             setConversation(found);
             
-            // 2. Fetch Messages for this conversation
             const msgRes = await fetch(`/api/conversations/${found.id}/messages`);
             const msgData = await msgRes.json();
             
@@ -46,7 +44,7 @@ export default function ConversationPage({ params }) {
               setMessages(msgData.messages || []);
             }
           } else {
-            setConversation(false); // Trigger notFound
+            setConversation(false);
           }
         }
       } catch (error) {
@@ -59,7 +57,6 @@ export default function ConversationPage({ params }) {
     fetchData();
   }, [customerSlug, user]);
 
-  // Realtime subscription logic
   useEffect(() => {
     if (!conversation?.id) return;
 
@@ -211,6 +208,64 @@ export default function ConversationPage({ params }) {
     }
   };
 
+  const handleFileUpload = async (file) => {
+    if (!conversation?.id || sending) return;
+
+    setSending(true);
+    const tempId = 'temp-' + Date.now();
+    const previewUrl = URL.createObjectURL(file);
+
+    setMessages(prev => [...prev, {
+      id: tempId,
+      conversation_id: conversation.id,
+      sender_type: 'owner',
+      content: `[img]${previewUrl}`,
+      created_at: new Date().toISOString()
+    }]);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `chat-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const res = await fetch(`/api/conversations/${conversation.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `[img]${publicUrl}`,
+          senderType: 'owner'
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setMessages(prev => prev.map(m => m.id === tempId ? {
+          ...data.message,
+          content: `[img]${publicUrl}`
+        } : m));
+      }
+    } catch (err) {
+      console.error('Image upload error:', err);
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleDelete = (messageId) => {
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+  };
+
   if (loading) {
     return (
       <DashboardLayout title="Conversation">
@@ -227,7 +282,7 @@ export default function ConversationPage({ params }) {
 
   return (
     <DashboardLayout title={`Chat with ${conversation?.customer_name || 'Customer'}`}>
-      <div className="flex flex-col h-[calc(100vh-64px)] bg-[#0A0A0A]">
+      <div className="flex flex-col h-[calc(100dvh-4rem)] sm:h-[calc(100vh-64px)] bg-[#0A0A0A]">
         <ChatHeader 
           name={conversation?.customer_name}
           status={isCustomerOnline ? 'Active Now' : (conversation?.status || 'Offline')}
@@ -244,12 +299,14 @@ export default function ConversationPage({ params }) {
           businessName={conversation?.business_name}
           onTypeComplete={handleTypeComplete}
           conversationId={conversation?.id}
+          onDelete={handleDelete}
           isCustomerView={false}
         />
         
         <MessageInput 
           onSendMessage={handleSendMessage} 
           onTyping={handleTyping}
+          onFileUpload={handleFileUpload}
           isLoading={sending} 
         />
       </div>

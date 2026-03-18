@@ -9,6 +9,9 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete, conv
   const [showDelete, setShowDelete] = useState(false);
   const longPressTimer = useRef(null);
 
+  const isImageMessage = message.content?.startsWith('[img]');
+  const imageUrl = isImageMessage ? message.content.slice(5) : null;
+
   const getSenderLabel = () => {
     if (isMe) return 'You';
     if (isOwner) return businessName || 'Business';
@@ -84,7 +87,7 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete, conv
             </span>
           </div>
 
-          <div className={`relative px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] text-[14px] sm:text-[15px] leading-relaxed transition-all duration-700 shadow-2xl hover:scale-[1.01] ${
+          <div className={`relative ${isImageMessage ? 'p-1.5 sm:p-2' : 'px-4 sm:px-6 py-3 sm:py-4'} rounded-2xl sm:rounded-[2rem] text-[14px] sm:text-[15px] leading-relaxed transition-all duration-700 shadow-2xl hover:scale-[1.01] ${
             isMe 
               ? 'bg-[#00D18F] text-black font-bold rounded-tr-[0.4rem] sm:rounded-tr-[0.5rem] shadow-[#00D18F]/10'
               : isOwner 
@@ -93,7 +96,16 @@ const MessageBubble = ({ message, senderType, businessName, onTypeComplete, conv
                   ? 'bg-white/[0.03] text-zinc-100 border border-white/[0.05] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]'
                   : 'bg-[#1A1A1A] text-zinc-200 border border-white/5 rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]'
           }`}>
-            {message.isNew && !isMe ? (
+            {isImageMessage ? (
+              <a href={imageUrl} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={imageUrl}
+                  alt="Shared image"
+                  className="max-w-[240px] sm:max-w-[320px] max-h-[300px] rounded-xl sm:rounded-2xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  loading="lazy"
+                />
+              </a>
+            ) : message.isNew && !isMe ? (
               <Typewriter 
                 text={message.content} 
                 onComplete={() => onTypeComplete?.(message.id)} 
