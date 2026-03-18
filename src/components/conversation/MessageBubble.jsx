@@ -1,9 +1,10 @@
-import React from 'react';
 import { Bot, User, Check } from 'lucide-react';
+import Typewriter from '../chat/Typewriter';
 
-const MessageBubble = ({ message, senderType, businessName }) => {
+const MessageBubble = ({ message, senderType, businessName, onTypeComplete }) => {
   const isOwner = senderType === 'owner';
   const isAI = senderType === 'ai';
+  const isCustomer = senderType === 'customer';
 
   const getSenderLabel = () => {
     if (isOwner) return businessName || 'Business';
@@ -30,7 +31,14 @@ const MessageBubble = ({ message, senderType, businessName }) => {
               ? 'bg-[#00D18F]/10 text-[#00D18F] border border-[#00D18F]/20 rounded-tl-none'
               : 'bg-[#1A1A1A] text-zinc-200 border border-white/5 rounded-tl-none'
         }`}>
-          {message.content}
+          {message.isNew && !isOwner ? (
+            <Typewriter 
+              text={message.content} 
+              onComplete={() => onTypeComplete?.(message.id)} 
+            />
+          ) : (
+            message.content
+          )}
           
           {isOwner && (
             <div className="absolute -bottom-5 right-0 flex items-center gap-1 opacity-40">

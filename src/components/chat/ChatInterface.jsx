@@ -32,6 +32,8 @@ const SUGGESTED_QUERIES = [
   { text: "Speak with a human" },
 ];
 
+import Typewriter from "./Typewriter";
+
 export default function ChatInterface({ business, userName }) {
   const router = useRouter();
   const [messages, setMessages] = useState([]);
@@ -42,6 +44,7 @@ export default function ChatInterface({ business, userName }) {
   const [isBusinessOnline, setIsBusinessOnline] = useState(false);
   const [typingUser, setTypingUser] = useState(null); // 'ai' or 'owner' or null
   const [isAiEnabled, setIsAiEnabled] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -173,7 +176,8 @@ export default function ChatInterface({ business, userName }) {
               role: newMessage.sender_type,
               content: newMessage.content,
               timestamp: new Date(newMessage.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              status: 'read'
+              status: 'read',
+              isNew: newMessage.sender_type !== 'customer'
             }];
           });
           if (newMessage.sender_type !== 'customer') {
@@ -230,8 +234,9 @@ export default function ChatInterface({ business, userName }) {
 
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
-    if (!inputValue.trim() || !conversationId) return;
-
+    if (!inputValue.trim() || !conversationId || isSending) return;
+    
+    setIsSending(true);
     const text = inputValue;
     setInputValue("");
     handleTyping(false);
@@ -260,64 +265,43 @@ export default function ChatInterface({ business, userName }) {
       });
       const data = await res.json();
       
-      if (data.success) {
-        setMessages(prev => prev.map(m => m.id === tempId ? {
-          ...m,
-          id: data.message.id,
-          status: 'sent'
-        } : m));
+        if (data.success) {
+          setMessages(prev => prev.map(m => m.id === tempId ? {
+            ...m,
+            id: data.message.id,
+            status: 'sent'
+          } : m));
 
-        // Only trigger AI if toggled ON
-        if (isAiEnabled && business?.use_ai_reply !== false) {
-          setTypingUser('ai');
-          // Broadcast AI is typing
-          channel.send({
-            type: 'broadcast',
-            event: 'typing',
-            payload: { isTyping: true, senderType: 'customer' } // Broadcast to others that AI (triggered by customer) might be processing
-          });
-
-          try {
-            const aiRes = await fetch('/api/assistant/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ conversationId })
-            });
-            const aiData = await aiRes.json();
-            
-            if (aiData.success && aiData.message) {
-              // Add the AI message directly if it's not already there from Realtime
-              const aiMsg = aiData.message;
-              setMessages(prev => {
-                if (prev.find(m => m.id === aiMsg.id)) return prev;
-                
-                // Remove temp AI typing if any
-                setTypingUser(null);
-
-                return [...prev, {
-                  id: aiMsg.id,
-                  role: aiMsg.sender_type,
-                  content: aiMsg.content,
-                  timestamp: new Date(aiMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                  status: 'read'
-                }];
+          // Only trigger AI if toggled ON
+          console.log(`[AI-TRIGGER] Checked: ${isAiEnabled}, ID: ${conversationId}`);
+          if (isAiEnabled) {
+            setTypingUser('ai');
+            try {
+              const aiRes = await fetch('/api/assistant/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversationId })
               });
+              const aiData = await aiRes.json();
+              
+              if (aiData.success && aiData.message) {
+                 // The message will be added via Realtime listener
+                 console.log('[AI-TRIGGER] AI response generated successfully');
+              } else {
+                setTypingUser(null);
+              }
+            } catch (aiErr) {
+              console.error('[AI-TRIGGER] Error:', aiErr);
+              setTypingUser(null);
             }
-          } catch (err) {
-            console.error('AI error:', err);
-          } finally {
-            setTypingUser(null);
-            // Broadcast AI stopped typing
-            channel.send({
-              type: 'broadcast',
-              event: 'typing',
-              payload: { isTyping: false, senderType: 'customer' }
-            });
           }
         }
-      }
     } catch (err) {
       console.error('Send error:', err);
+      // If sending fails, remove the temporary message
+      setMessages(prev => prev.filter(m => !m.id?.toString().startsWith('temp-')));
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -428,7 +412,16 @@ export default function ChatInterface({ business, userName }) {
                       ? "bg-blue-500/10 text-white border border-blue-500/30 rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
                       : "bg-white/[0.03] text-zinc-100 border border-white/[0.05] rounded-tl-[0.4rem] sm:rounded-tl-[0.5rem]"
                 }`}>
-                  {msg.content}
+                  {msg.isNew ? (
+                    <Typewriter 
+                      text={msg.content} 
+                      onComplete={() => {
+                        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isNew: false } : m));
+                      }} 
+                    />
+                  ) : (
+                    msg.content
+                  )}
                 </div>
                 <div className={`flex items-center gap-2 px-1 ${msg.role === "customer" ? "flex-row-reverse" : ""}`}>
                   <span className="text-[8px] sm:text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none">{msg.timestamp}</span>

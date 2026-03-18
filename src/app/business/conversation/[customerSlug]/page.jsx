@@ -77,10 +77,8 @@ export default function ConversationPage({ params }) {
         },
         (payload) => {
           setMessages((prev) => {
-            // If already exists, skip
             if (prev.find(m => m.id === payload.new.id)) return prev;
 
-            // Check if there's a temporary message that matches this one
             const tempMatch = prev.find(m => 
               m.id?.toString().startsWith('temp-') && 
               m.content === payload.new.content && 
@@ -88,18 +86,14 @@ export default function ConversationPage({ params }) {
             );
 
             if (tempMatch) {
-              // Replace it
               return prev.map(m => m.id === tempMatch.id ? payload.new : m);
             }
 
-            return [...prev, payload.new];
+            return [...prev, { ...payload.new, isNew: payload.new.sender_type !== 'owner' }];
           });
-          if (payload.new.sender_type === 'ai') setIsAiTyping(false);
+          if (payload.new.sender_type !== 'owner') setIsAiTyping(false);
         }
       )
-      .on('broadcast', { event: 'typing' }, (payload) => {
-        setIsAiTyping(payload.payload.isTyping);
-      })
       .on(
         'postgres_changes',
         {
@@ -132,6 +126,10 @@ export default function ConversationPage({ params }) {
       supabase.removeChannel(channel);
     };
   }, [conversation?.id]);
+
+  const handleTypeComplete = (id) => {
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, isNew: false } : m));
+  };
 
   const handleToggleAi = async (checked) => {
     if (!conversation?.id) return;
@@ -244,6 +242,7 @@ export default function ConversationPage({ params }) {
           isTyping={isAiTyping} 
           typingAvatar={conversation?.customer_name?.charAt(0) || 'C'}
           businessName={conversation?.business_name}
+          onTypeComplete={handleTypeComplete}
         />
         
         <MessageInput 
