@@ -26,7 +26,7 @@ export default function ConversationsPage() {
               ? new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               : new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             language: 'English',
-            sentiment: 'Neutral'
+            sentiment: c.sentiment || 'Neutral'
           })));
         }
       } catch (err) {

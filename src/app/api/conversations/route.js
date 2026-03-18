@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getUserFromCookie } from '@/lib/auth';
+import { detectSentiment } from '@/lib/sentiment';
 
 export async function GET(req) {
   try {
@@ -19,7 +20,8 @@ export async function GET(req) {
         result = await db.query(
           `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
-                  lm.created_at AS last_message_at
+                  lm.created_at AS last_message_at,
+                  lcm.content AS last_customer_message
            FROM conversations c
            JOIN businesses b ON c.business_id = b.id
            LEFT JOIN LATERAL (
@@ -29,6 +31,13 @@ export async function GET(req) {
              ORDER BY created_at DESC
              LIMIT 1
            ) lm ON TRUE
+           LEFT JOIN LATERAL (
+             SELECT content
+             FROM messages
+             WHERE conversation_id = c.id AND sender_type = 'customer'
+             ORDER BY created_at DESC
+             LIMIT 1
+           ) lcm ON TRUE
            WHERE c.id = $1 AND c.customer_id = $2
            LIMIT 1`,
           [conversationId, user.id]
@@ -37,7 +46,8 @@ export async function GET(req) {
         result = await db.query(
           `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
-                  lm.created_at AS last_message_at
+                  lm.created_at AS last_message_at,
+                  lcm.content AS last_customer_message
            FROM conversations c
            JOIN businesses b ON c.business_id = b.id
            LEFT JOIN LATERAL (
@@ -47,6 +57,13 @@ export async function GET(req) {
              ORDER BY created_at DESC
              LIMIT 1
            ) lm ON TRUE
+           LEFT JOIN LATERAL (
+             SELECT content
+             FROM messages
+             WHERE conversation_id = c.id AND sender_type = 'customer'
+             ORDER BY created_at DESC
+             LIMIT 1
+           ) lcm ON TRUE
            WHERE c.customer_id = $1 AND c.business_id = $2
            ORDER BY c.created_at DESC
            LIMIT 1`,
@@ -56,7 +73,8 @@ export async function GET(req) {
         result = await db.query(
           `SELECT c.*, b.name AS business_name, b.slug AS business_slug,
                   lm.content AS last_message,
-                  lm.created_at AS last_message_at
+                  lm.created_at AS last_message_at,
+                  lcm.content AS last_customer_message
            FROM conversations c
            JOIN businesses b ON c.business_id = b.id
            LEFT JOIN LATERAL (
@@ -66,6 +84,13 @@ export async function GET(req) {
              ORDER BY created_at DESC
              LIMIT 1
            ) lm ON TRUE
+           LEFT JOIN LATERAL (
+             SELECT content
+             FROM messages
+             WHERE conversation_id = c.id AND sender_type = 'customer'
+             ORDER BY created_at DESC
+             LIMIT 1
+           ) lcm ON TRUE
            WHERE c.customer_id = $1
            ORDER BY COALESCE(lm.created_at, c.created_at) DESC`,
           [user.id]
@@ -76,7 +101,8 @@ export async function GET(req) {
         SELECT c.*, b.name as business_name, b.slug as business_slug,
                u.name as actual_customer_name, u.slug as customer_slug,
                lm.content AS last_message,
-               lm.created_at AS last_message_at
+               lm.created_at AS last_message_at,
+               lcm.content AS last_customer_message
         FROM conversations c
         JOIN businesses b ON c.business_id = b.id
         LEFT JOIN users u ON c.customer_id = u.id
@@ -87,6 +113,13 @@ export async function GET(req) {
           ORDER BY created_at DESC
           LIMIT 1
         ) lm ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT content
+          FROM messages
+          WHERE conversation_id = c.id AND sender_type = 'customer'
+          ORDER BY created_at DESC
+          LIMIT 1
+        ) lcm ON TRUE
         WHERE b.owner_id = $1
       `;
       const params = [user.id];
@@ -105,6 +138,12 @@ export async function GET(req) {
         customer_name: conv.actual_customer_name || conv.customer_name || 'Guest'
       }));
     }
+
+    // Attach computed sentiment to all responses
+    result.rows = result.rows.map(conv => ({
+      ...conv,
+      sentiment: detectSentiment(conv.last_customer_message || conv.last_message)
+    }));
 
     return NextResponse.json({ success: true, conversations: result.rows });
   } catch (error) {
