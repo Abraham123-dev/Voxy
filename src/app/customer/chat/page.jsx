@@ -75,8 +75,8 @@ export default function CustomerChatHistoryPage() {
                     </div>
                   </div>
                   
-                  <div className="flex-1 min-w-0 overflow-hidden">
-                    <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex-1 min-w-0 overflow-hidden w-full">
+                    <div className="flex items-center justify-between gap-2 mb-1 min-w-0 overflow-hidden w-full">
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                         <h3 className="font-display font-bold text-base md:text-lg text-zinc-900 dark:text-white group-hover:text-[#00D18F] transition-colors truncate">
                           {chat.business_name || 'Business'}
@@ -89,8 +89,8 @@ export default function CustomerChatHistoryPage() {
                         {new Date(chat.last_message_at || chat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-3 w-full">
-                      <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium truncate group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors shrink min-w-0">
+                    <div className="flex items-center justify-between gap-3 w-full min-w-0 overflow-hidden">
+                      <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium truncate group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors flex-1 min-w-0 w-full block">
                         {chat.last_message || 'Click to continue your chat...'}
                       </p>
                       {chat.unread_count > 0 && (
