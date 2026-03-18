@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, ShieldCheck, ArrowRight, Loader2, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 
-export default function VerifyAccountPage() {
+function VerifyAccountContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
@@ -234,5 +234,17 @@ export default function VerifyAccountPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyAccountPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#00D18F]/20 border-t-[#00D18F] rounded-full animate-spin" />
+      </div>
+    }>
+      <VerifyAccountContent />
+    </Suspense>
   );
 }
