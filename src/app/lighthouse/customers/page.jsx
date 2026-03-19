@@ -22,9 +22,9 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast'; // Assuming toast is from react-hot-toast
 
-export default function AdminUsersPage() {
+export default function AdminCustomersPage() {
   const { user: currentUser } = useAuth();
-  const [users, setUsers] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
@@ -32,14 +32,14 @@ export default function AdminUsersPage() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const res = await fetch('/api/admin/users');
+        const res = await fetch('/api/admin/customers');
         const data = await res.json();
         if (data.success) {
-          setUsers(data.users);
+          setCustomers(data.customers);
         }
       } catch (error) {
-        console.error('Error fetching users:', error);
-        toast.error('Failed to load user records');
+        console.error('Error fetching customers:', error);
+        toast.error('Failed to load customer records');
       } finally {
         setLoading(false);
       }
@@ -56,8 +56,8 @@ export default function AdminUsersPage() {
       const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        setUsers(users.filter(u => u.id !== id));
-        toast.success('User deleted successfully');
+        setCustomers(customers.filter(u => u.id !== id));
+        toast.success('Customer deleted successfully');
       } else {
         toast.error(data.error || 'Delete failed');
       }
@@ -83,8 +83,8 @@ export default function AdminUsersPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setUsers(users.map(user => user.id === u.id ? { ...user, role: newRole } : user));
-        toast.success(`User ${action}d successfully`);
+        setCustomers(customers.map(customer => customer.id === u.id ? { ...customer, role: newRole } : customer));
+        toast.success(`Customer ${action}d successfully`);
       } else {
         toast.error(data.error || 'Status update failed');
       }
@@ -95,7 +95,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const filteredUsers = users.filter(u => 
+  const filteredCustomers = customers.filter(u => 
     u.name?.toLowerCase().includes(search.toLowerCase()) || 
     u.email?.toLowerCase().includes(search.toLowerCase()) ||
     u.role?.toLowerCase().includes(search.toLowerCase())
@@ -122,28 +122,28 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <DashboardLayout title="User Management">
+      <DashboardLayout title="Customer Management">
         <div className="flex flex-col items-center justify-center p-20 min-h-[60vh] text-zinc-500 space-y-4">
           <Loader2 className="w-10 h-10 animate-spin text-[#00D18F]" />
-          <p className="font-black uppercase tracking-[0.2em] text-[10px]">Loading User Directory...</p>
+          <p className="font-black uppercase tracking-[0.2em] text-[10px]">Loading Customer Directory...</p>
         </div>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout title="User Management">
+    <DashboardLayout title="Customer Management">
       <div className="space-y-10 pb-10">
         {/* Header Header */}
         <div className="flex flex-col md:flex-row gap-6 md:items-end justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="inline-block px-3 py-1 bg-[#00D18F]/10 text-[#00D18F] text-[10px] font-black uppercase tracking-widest rounded-full border border-[#00D18F]/20">
-                Platform Users
+                Platform Customers
               </span>
-              <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest ml-1">{filteredUsers.length} Total Users</span>
+              <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest ml-1">{filteredCustomers.length} Total Customers</span>
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tight">User Directory</h1>
+            <h1 className="text-4xl font-black text-white tracking-tight">Customer Directory</h1>
           </div>
           
           <div className="flex gap-3">
@@ -171,23 +171,22 @@ export default function AdminUsersPage() {
                 <tr className="bg-zinc-900/50">
                   <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest">Name / Email</th>
                   <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest">Role</th>
-                  <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest">Business</th>
                   <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest">Joined Date</th>
                   <th className="py-6 px-8 text-zinc-500 text-[10px] font-black uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredUsers.length === 0 ? (
+                {filteredCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="py-32 text-center">
+                    <td colSpan="4" className="py-32 text-center">
                       <div className="flex flex-col items-center">
                         <User className="size-12 text-zinc-800 mb-4" />
-                        <span className="text-zinc-600 font-black uppercase tracking-widest text-xs">No matching user records found</span>
+                        <span className="text-zinc-600 font-black uppercase tracking-widest text-xs">No matching customer records found</span>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((u) => (
+                  filteredCustomers.map((u) => (
                     <tr key={u.id} className="group hover:bg-white/[0.02] transition-colors">
                       <td className="py-8 px-8">
                         <div className="flex items-center gap-5">
@@ -219,16 +218,6 @@ export default function AdminUsersPage() {
                           {u.role === 'admin' && <Lock className="w-2.5 h-2.5" />}
                           {u.role || 'Unassigned'}
                         </span>
-                      </td>
-                      <td className="py-8 px-8">
-                        {u.business_name ? (
-                          <div className="flex items-center gap-2 text-white/80 font-bold group-hover:text-[#00D18F] transition-colors">
-                            <Building2 className="w-4 h-4 text-[#00D18F]" />
-                            <span className="text-sm truncate max-w-[150px]">{u.business_name}</span>
-                          </div>
-                        ) : (
-                          <span className="text-zinc-600 font-bold text-xs uppercase tracking-tighter">No Business</span>
-                        )}
                       </td>
                       <td className="py-8 px-8">
                         <div className="flex flex-col">
@@ -271,7 +260,7 @@ export default function AdminUsersPage() {
           {/* Pagination Placeholder */}
           <div className="p-8 bg-zinc-900/40 border-t border-white/5 flex items-center justify-between">
              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                Showing 1 to {filteredUsers.length} of {filteredUsers.length} users
+                Showing 1 to {filteredCustomers.length} of {filteredCustomers.length} customers
              </div>
              <div className="flex gap-2">
                 <button className="px-5 py-2 rounded-xl bg-zinc-900 border border-white/5 text-zinc-500 text-[10px] font-black uppercase tracking-widest cursor-not-allowed">

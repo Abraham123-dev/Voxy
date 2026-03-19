@@ -46,6 +46,8 @@ export default function Sidebar({ isOpen, onClose }) {
       return [
         { name: 'Dashboard', href: '/lighthouse/dashboard', icon: LayoutDashboard },
         { name: 'Platform Overview', href: '/lighthouse', icon: Activity },
+        { name: 'Businesses', href: '/lighthouse/businesses', icon: Building2 },
+        { name: 'Customers', href: '/lighthouse/customers', icon: Users },
         { name: 'Settings', href: '/lighthouse/settings', icon: Settings },
       ];
     } else if (role === 'customer') {
