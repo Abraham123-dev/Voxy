@@ -11,6 +11,7 @@ import {
 import { notifyBusiness } from '@/lib/notifications';
 import { detectLanguageGemini, validateResponseLanguage } from '@/lib/ai/utils/language';
 import { trackUsage } from '@/lib/tracking';
+import { getFallbackResponse, validateAIResponse } from '@/lib/ai/utils/fallback';
 
 export async function POST(req) {
   try {
@@ -62,10 +63,12 @@ export async function POST(req) {
     console.log(`[AI-CHAT] Detected Language: ${detectedLanguage}`);
 
     if (detectedLanguage === 'unsupported') {
-      const unsupportedResponse = "Sorry, this language is not supported. Please use English, Yoruba, Hausa, or Igbo.";
+      const fallbackMsg = getFallbackResponse(conv.assistant_tone);
+      await notifyBusiness(conversationId, 'high');
+      
       const saveRes = await db.query(
         'INSERT INTO messages (conversation_id, sender_type, content) VALUES ($1, $2, $3) RETURNING *',
-        [conversationId, 'ai', unsupportedResponse]
+        [conversationId, 'ai', fallbackMsg]
       );
       return NextResponse.json({ success: true, message: saveRes.rows[0], language: 'unsupported' });
     }
@@ -143,12 +146,27 @@ STRICT DIRECTIVES:
     console.log(`🤖 Generating AI response for conversation ${conversationId} in ${detectedLanguage}...`);
     let aiResponse = await generateAIResponse(normalizedPayload, systemInstruction);
 
-    // 5b. LANGUAGE VALIDATION LAYER
-    let isValidLanguage = await validateResponseLanguage(aiResponse.text, detectedLanguage);
-    if (!isValidLanguage) {
-      console.warn(`⚠️ [AI-CHAT] Language validation FAILED. Output was not ${detectedLanguage}. Retrying...`);
-      const stricterInstruction = `${systemInstruction}\n\nCRITICAL: YOUR LAST RESPONSE WAS IN THE WRONG LANGUAGE. YOU MUST RESPOND IN ${detectedLanguage.toUpperCase()} ONLY.`;
-      aiResponse = await generateAIResponse(normalizedPayload, stricterInstruction);
+    // 5b. FALLBACK & VALIDATION LAYER
+    let isFallbackTriggered = aiResponse.failed || !validateAIResponse(aiResponse.text);
+    
+    if (isFallbackTriggered) {
+      console.warn(`⚠️ [AI-CHAT] AI failure or invalid response. Triggering fallback...`);
+      await notifyBusiness(conversationId, 'high');
+      aiResponse.text = getFallbackResponse(conv.assistant_tone);
+    } else {
+      // 5c. LANGUAGE VALIDATION LAYER
+      let isValidLanguage = await validateResponseLanguage(aiResponse.text, detectedLanguage);
+      if (!isValidLanguage) {
+        console.warn(`⚠️ [AI-CHAT] Language validation FAILED. Output was not ${detectedLanguage}. Retrying...`);
+        const stricterInstruction = `${systemInstruction}\n\nCRITICAL: YOUR LAST RESPONSE WAS IN THE WRONG LANGUAGE. YOU MUST RESPOND IN ${detectedLanguage.toUpperCase()} ONLY.`;
+        aiResponse = await generateAIResponse(normalizedPayload, stricterInstruction);
+        
+        // Final fallback check after retry
+        if (aiResponse.failed || !validateAIResponse(aiResponse.text)) {
+           await notifyBusiness(conversationId, 'high');
+           aiResponse.text = getFallbackResponse(conv.assistant_tone);
+        }
+      }
     }
 
     // 5c. TRACK LLM USAGE

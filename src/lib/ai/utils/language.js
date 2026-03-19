@@ -6,19 +6,26 @@ import { generateAIResponse } from "../core/generateAIResponse.js";
  * Returns: "english", "yoruba", "hausa", "igbo", or "unsupported".
  */
 export async function detectLanguageGemini(text) {
-  if (!text || text.trim().length === 0) return "unsupported";
+  if (!text || text.trim().length === 0) return "english"; // Default to English for empty/whitespace
+
+  const trimmedLower = text.trim().toLowerCase();
+  
+  // Quick check for common short English greetings to save tokens/latency
+  const commonEnglishGreetings = ['hi', 'hello', 'hey', 'yo', 'good morning', 'good afternoon', 'good evening'];
+  if (commonEnglishGreetings.includes(trimmedLower)) return "english";
 
   const prompt = `
 Detect the language of the following text. 
 Return ONLY one of these exact words: "english", "yoruba", "hausa", "igbo", or "unsupported".
 
 Rules:
-- If the language is English, return "english".
+- If the language is English, return "english". (Short greetings like "hi", "hello" are English).
 - If the language is Yoruba, return "yoruba".
 - If the language is Hausa, return "hausa".
 - If the language is Igbo, return "igbo".
-- If the language is none of the above or if you are not highly confident, return "unsupported".
-- Mixed languages: if one of the supported languages is clearly dominant, return that. Otherwise, "unsupported".
+- If the language is none of the above, return "unsupported".
+- If you are not sure, default to "english" if it looks like a greeting.
+- Mixed languages: return the dominant supported language.
 - Return ONLY the word. No punctuation, no explanation.
 
 Text: "${text}"

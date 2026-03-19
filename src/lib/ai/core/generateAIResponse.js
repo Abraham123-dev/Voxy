@@ -68,8 +68,9 @@ export async function generateAIResponse(promptOrMessages, systemInstruction = "
   // 8. FAIL-SAFE (LAST RESORT)
   console.error("❌ [AI-CORE] ALL AI PROVIDERS FAILED.");
   return {
-    text: "I'm having a bit of trouble responding right now. Please try again shortly or I'll reach out to the business owner for you.",
+    text: null,
     provider: "error",
-    error: lastError?.message || "All providers failed"
+    error: lastError?.message || "All providers failed",
+    failed: true
   };
 }
