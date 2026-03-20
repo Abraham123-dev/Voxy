@@ -2,72 +2,13 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, CheckCircle2, AlertCircle, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-function ResetPasswordContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-  
-  const [formData, setFormData] = useState({
-    newPassword: '',
-    confirmPassword: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [showPasswords, setShowPasswords] = useState(false);
-
-  useEffect(() => {
-    if (!token) {
-      toast.error("Invalid or missing reset token.");
-      router.push('/login');
-    }
-  }, [token, router]);
-
-  const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (formData.newPassword !== formData.confirmPassword) {
-      toast.error("Passwords do not match.");
-      return;
-    }
-
-    if (formData.newPassword.length < 8) {
-        toast.error("Password must be at least 8 characters long.");
-        return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword: formData.newPassword }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setSuccess(true);
-"use client";
-
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, CheckCircle2, AlertCircle, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import Navbar from '@/landing/sections/Navbar';
 
 function ResetPasswordContent() {
   const router = useRouter();
@@ -144,6 +85,8 @@ function ResetPasswordContent() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <Navbar />
+
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-voxy-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-[420px] relative z-10">
