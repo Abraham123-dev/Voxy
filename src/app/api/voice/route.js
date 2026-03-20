@@ -7,35 +7,16 @@ import crypto from 'crypto';
 import { generateHybridSpeech } from '@/lib/ai/utils/hybridTts';
 import { detectLanguageGemini } from '@/lib/ai/utils/language';
 import { trackUsage } from '@/lib/tracking';
+import { transcribeAudioHybrid } from '@/lib/ai/utils/hybridStt';
 
 // Import the existing chat handler to prevent logic duplication
 import { POST as handleChatGenerate } from '@/app/api/assistant/chat/route';
 
 async function transcribeAudio(audioBlob) {
   try {
-    const formData = new FormData();
-    formData.append("file", audioBlob, "audio.webm");
-    // Groq's high-speed Whisper model
-    formData.append("model", "whisper-large-v3-turbo"); 
-
-    const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
-      },
-      body: formData
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Groq STT Error Object:", errText);
-      throw new Error(`Groq API returned ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.text;
+    return await transcribeAudioHybrid(audioBlob, "audio/webm");
   } catch (error) {
-    console.error('Groq STT Error:', error);
+    console.error('Voice Route STT Error:', error);
     throw new Error('Speech-to-Text conversion failed');
   }
 }
