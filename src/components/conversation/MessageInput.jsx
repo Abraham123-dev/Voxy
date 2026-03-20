@@ -109,12 +109,12 @@ const MessageInput = ({
   const statusConfig = voiceStatus ? VOICE_STATUS_CONFIG[voiceStatus] : null;
 
   return (
-    <div className="w-full shrink-0 border-t border-white/5 bg-[#0F0F0F] px-4 py-4 sm:px-8 sm:py-6 transition-all">
+    <div className="w-full shrink-0 border-t border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-[#0F0F0F] px-4 py-4 sm:px-8 sm:py-6 transition-all">
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex flex-col gap-4">
         
         {/* Voice Status Indicator Banner */}
         {statusConfig && (
-          <div className="flex items-center justify-center py-2 px-6 rounded-full bg-white/[0.03] border border-white/5 self-center animate-in fade-in slide-in-from-bottom-2 duration-500 shadow-sm">
+          <div className="flex items-center justify-center py-2 px-6 rounded-full bg-zinc-100/80 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/5 self-center animate-in fade-in slide-in-from-bottom-2 duration-500 shadow-sm">
             {statusConfig.icon}
             <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${statusConfig.color}`}>
               {statusConfig.label}
@@ -125,11 +125,11 @@ const MessageInput = ({
         {/* Selected Image Preview */}
         {selectedFile && (
           <div className="flex animate-in zoom-in-95 duration-300">
-            <div className="relative group p-1 bg-white/5 rounded-2xl border border-white/10">
+            <div className="relative group p-1 bg-zinc-100 dark:bg-white/5 rounded-2xl border border-zinc-200 dark:border-white/10">
               <img
                 src={URL.createObjectURL(selectedFile)}
                 alt="Preview"
-                className="h-24 w-24 sm:h-32 sm:w-32 object-cover rounded-xl border border-white/10"
+                className="h-24 w-24 sm:h-32 sm:w-32 object-cover rounded-xl border border-zinc-200 dark:border-white/10"
               />
               <button
                 type="button"
@@ -154,12 +154,12 @@ const MessageInput = ({
           <button 
             type="button" 
             onClick={() => fileInputRef.current?.click()}
-            className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/5 transition-all"
+            className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all"
           >
             <Paperclip size={20} />
           </button>
 
-          <div className="flex-1 bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-2 focus-within:bg-white/[0.05] transition-all duration-300 flex items-center">
+          <div className="flex-1 bg-white dark:bg-white/[0.03] border border-zinc-200 dark:border-white/5 rounded-2xl px-5 py-2 focus-within:bg-zinc-50 dark:focus-within:bg-white/[0.05] focus-within:border-[#00D18F]/30 transition-all duration-300 flex items-center">
               <textarea
                 ref={textareaRef}
                 value={content}
@@ -167,7 +167,7 @@ const MessageInput = ({
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 rows={1}
-                className="w-full bg-transparent border-none outline-none py-2 text-[15px] text-white placeholder:text-zinc-700 resize-none min-h-[44px] max-h-[160px]"
+                className="w-full bg-transparent border-none outline-none py-2 text-[15px] text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-700 resize-none min-h-[44px] max-h-[160px]"
               />
           </div>
 
