@@ -54,6 +54,14 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
     });
 
     const audioBuffer = Buffer.concat(chunks);
+    
+    // Validate: MsEdge can silently produce empty/tiny output for some voices
+    if (audioBuffer.length < 1024) {
+      console.warn(`[HYBRID TTS: MSEDGE] Audio buffer too small (${audioBuffer.length} bytes) for voice ${selectedEdgeVoice}. Falling back...`);
+      throw new Error(`MsEdge produced insufficient audio (${audioBuffer.length} bytes)`);
+    }
+
+    console.log(`[HYBRID TTS: MSEDGE] Generated ${audioBuffer.length} bytes of audio`);
     const base64Audio = audioBuffer.toString('base64');
     
     return `data:audio/mp3;base64,${base64Audio}`;
@@ -91,6 +99,11 @@ export async function generateHybridSpeech(text, detectedLanguage = 'english') {
         audioChunks.map(chunk => Buffer.from(chunk.base64, 'base64'))
       );
       
+      if (combinedBuffer.length < 1024) {
+        throw new Error(`Google TTS produced insufficient audio (${combinedBuffer.length} bytes)`);
+      }
+
+      console.log(`[HYBRID TTS: GOOGLE] Generated ${combinedBuffer.length} bytes of audio`);
       const base64Audio = combinedBuffer.toString('base64');
       return `data:audio/mp3;base64,${base64Audio}`;
       
