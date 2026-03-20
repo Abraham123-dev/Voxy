@@ -9,6 +9,7 @@ import ConversationChart from '@/components/dashboard/ConversationChart';
 import RecentConversations from '@/components/dashboard/RecentConversations';
 import ProfileHealth from '@/components/dashboard/ProfileHealth';
 import OnboardingModal from '@/components/dashboard/OnboardingModal';
+import CopyBusinessLink from '@/components/business/CopyBusinessLink';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -77,10 +78,13 @@ export default function DashboardPage() {
     <DashboardLayout title="Dashboard">
       <div className="max-w-[1400px] mx-auto space-y-8 py-6">
         {/* Welcome Section */}
-        <div className="animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
           <p className="text-voxy-muted text-[15px]">
             Welcome back, <span className="text-voxy-primary font-medium">{user?.name?.split(' ')[0] || business?.name || 'Business Owner'}</span>. Here's a summary of your business activity and AI assistant performance.
           </p>
+          <div className="shrink-0">
+            <CopyBusinessLink business={business} />
+          </div>
         </div>
 
         {/* Stats Grid */}
