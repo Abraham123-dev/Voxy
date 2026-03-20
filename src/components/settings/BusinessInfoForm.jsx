@@ -1,6 +1,19 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
+import { 
+  Globe, 
+  Instagram, 
+  Twitter, 
+  Facebook, 
+  Linkedin,
+  Clock,
+  Camera,
+  MapPin,
+  ChevronRight,
+  Bot
+} from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import ImageUpload from './ImageUpload';
 
 const CATEGORIES = [
   'Restaurant',
@@ -21,8 +34,6 @@ const CATEGORIES = [
   'Fashion',
   'Other'
 ];
-
-import ImageUpload from './ImageUpload';
 
 import { NIGERIA_STATES } from '@/lib/nigeria-states';
 
@@ -176,6 +187,70 @@ const BusinessInfoForm = ({ data, onChange }) => {
                 />
               </div>
             )}
+          </div>
+
+          {/* Social Presence */}
+          <div className="space-y-6 pt-10 border-t border-zinc-100 dark:border-white/[0.03]">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-[#00D18F]/10 flex items-center justify-center">
+                <Globe className="w-5 h-5 text-[#00D18F]" />
+              </div>
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-widest">Social Presence</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2.5">
+                <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide ml-1">Instagram</Label>
+                <div className="relative group">
+                  <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-[#00D18F] transition-colors" />
+                  <Input 
+                    placeholder="instagram.com/username"
+                    value={data.social_links?.instagram || ''}
+                    onChange={(e) => onChange({ ...data, social_links: { ...data.social_links, instagram: e.target.value } })}
+                    className="pl-12 bg-zinc-50 dark:bg-white/5 border-zinc-100 dark:border-white/5 h-12 rounded-xl focus:border-[#00D18F]/40 text-sm font-medium transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide ml-1">Twitter (X)</Label>
+                <div className="relative group">
+                  <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-[#00D18F] transition-colors" />
+                  <Input 
+                    placeholder="twitter.com/username"
+                    value={data.social_links?.twitter || ''}
+                    onChange={(e) => onChange({ ...data, social_links: { ...data.social_links, twitter: e.target.value } })}
+                    className="pl-12 bg-zinc-50 dark:bg-white/5 border-zinc-100 dark:border-white/5 h-12 rounded-xl focus:border-[#00D18F]/40 text-sm font-medium transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide ml-1">Facebook</Label>
+                <div className="relative group">
+                  <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-[#00D18F] transition-colors" />
+                  <Input 
+                    placeholder="facebook.com/page"
+                    value={data.social_links?.facebook || ''}
+                    onChange={(e) => onChange({ ...data, social_links: { ...data.social_links, facebook: e.target.value } })}
+                    className="pl-12 bg-zinc-50 dark:bg-white/5 border-zinc-100 dark:border-white/5 h-12 rounded-xl focus:border-[#00D18F]/40 text-sm font-medium transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wide ml-1">LinkedIn</Label>
+                <div className="relative group">
+                  <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-[#00D18F] transition-colors" />
+                  <Input 
+                    placeholder="linkedin.com/company/name"
+                    value={data.social_links?.linkedin || ''}
+                    onChange={(e) => onChange({ ...data, social_links: { ...data.social_links, linkedin: e.target.value } })}
+                    className="pl-12 bg-zinc-50 dark:bg-white/5 border-zinc-100 dark:border-white/5 h-12 rounded-xl focus:border-[#00D18F]/40 text-sm font-medium transition-all"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

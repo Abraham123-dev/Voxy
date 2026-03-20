@@ -42,7 +42,13 @@ export default function BusinessSettingsPage() {
     phone: '',
     state: '',
     lga: '',
-    street_address: ''
+    street_address: '',
+    social_links: {
+      instagram: '',
+      twitter: '',
+      facebook: '',
+      linkedin: ''
+    }
   });
 
   const calculateCompletion = useCallback((data) => {
@@ -62,6 +68,8 @@ export default function BusinessSettingsPage() {
     if (data.state && data.state.trim().length > 0) completedCount++;
     if (data.lga && data.lga.trim().length > 0) completedCount++;
     if (data.street_address && data.street_address.trim().length > 0) completedCount++;
+
+    // social_links are explicitly excluded from completion as requested
 
     const percentage = Math.round((completedCount / SETTINGS_FIELDS.length) * 100);
     return percentage;

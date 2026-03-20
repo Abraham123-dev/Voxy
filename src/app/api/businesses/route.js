@@ -66,7 +66,7 @@ export async function POST(req) {
       name, description, category, custom_category, 
       assistant_tone, assistant_instructions, business_hours,
       profile_completion, is_live, logo_url, use_ai_reply,
-      phone, address, state, lga, street_address
+      phone, address, state, lga, street_address, social_links
     } = body;
 
     // Check if business exists
@@ -93,13 +93,14 @@ export async function POST(req) {
           profile_completion = $8, is_live = $9, logo_url = $11,
           slug = $12, use_ai_reply = $13, phone = $14, address = $15,
           state = $16, lga = $17, street_address = $18,
+          social_links = $19,
           updated_at = CURRENT_TIMESTAMP
         WHERE owner_id = $10 RETURNING *`,
         [
           name, description, category, custom_category, 
           assistant_tone, assistant_instructions, JSON.stringify(business_hours),
           profile_completion, is_live, user.id, logo_url, slug, use_ai_reply,
-          phone, address, state, lga, street_address
+          phone, address, state, lga, street_address, JSON.stringify(social_links)
         ]
       );
     } else {
@@ -110,13 +111,13 @@ export async function POST(req) {
           owner_id, name, description, category, 
           custom_category, assistant_tone, assistant_instructions, 
           business_hours, profile_completion, is_live, logo_url, slug, use_ai_reply,
-          phone, address, state, lga, street_address
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING *`,
+          phone, address, state, lga, street_address, social_links
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING *`,
         [
           user.id, name, description, category, 
           custom_category, assistant_tone, assistant_instructions, 
           JSON.stringify(business_hours), profile_completion, is_live, logo_url, slug, use_ai_reply,
-          phone, address, state, lga, street_address
+          phone, address, state, lga, street_address, JSON.stringify(social_links)
         ]
       );
     }
