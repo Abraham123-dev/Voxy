@@ -215,7 +215,7 @@ STRICT DIRECTIVES:
     // 5c. TRACK LLM USAGE
     const llmTokens = aiResponse.tokensUsed || 0;
     if (llmTokens > 0) {
-      const llmCost = llmTokens * 0.00000015; // ~$0.15 per 1M tokens assumption
+      const llmCost = llmTokens * 0.00024; // ~240 NGN per 1M tokens (converted from $0.15)
       await trackUsage({
         businessId: conv.business_id,
         type: 'llm',

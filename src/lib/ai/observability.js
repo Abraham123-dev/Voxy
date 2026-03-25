@@ -6,16 +6,11 @@ const PRICING = {
   tts: { perChar: 0.00001 }                 // Cost per character
 };
 
+const NGN_MULTIPLIER = 1600; // 1 USD = 1600 NGN (Hackathon benchmark)
+
 /**
  * AI Cost Estimation Utility.
- * Support for token-based (LLM) and character-based (TTS) models.
- * 
- * @param {Object} params
- * @param {string} params.provider
- * @param {string} params.model
- * @param {number} params.inputSize - Tokens or characters
- * @param {number} params.outputSize - Tokens or characters
- * @returns {number} Estimated cost in USD
+ * Returns cost in NGN.
  */
 export function estimateCost({ provider, model, inputSize, outputSize }) {
   const prov = provider.toLowerCase();
@@ -23,7 +18,7 @@ export function estimateCost({ provider, model, inputSize, outputSize }) {
 
   // 1. Character-based Pricing (TTS)
   if (prov.includes('tts') || mod.includes('tts')) {
-    return (inputSize || 0) * PRICING.tts.perChar;
+    return (inputSize || 0) * PRICING.tts.perChar * NGN_MULTIPLIER;
   }
 
   // 2. Token-based Pricing
@@ -33,7 +28,7 @@ export function estimateCost({ provider, model, inputSize, outputSize }) {
   const inputCost = ((inputSize || 0) / 1000) * (pricing.input || 0);
   const outputCost = ((outputSize || 0) / 1000) * (pricing.output || 0);
 
-  return inputCost + outputCost;
+  return (inputCost + outputCost) * NGN_MULTIPLIER;
 }
 
 /**
