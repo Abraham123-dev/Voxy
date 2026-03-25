@@ -11,3 +11,21 @@ model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
 }
+
+model AIUsageLog {
+  id            String   @id @default(uuid())
+  userId        String?  @map("user_id")
+  businessId    String?  @map("business_id")
+  requestType   String   @map("request_type")
+  provider      String
+  model         String
+  inputSize     Int      @default(0) @map("input_size")
+  outputSize    Int      @default(0) @map("output_size")
+  latency       Int      @default(0)
+  estimatedCost Float    @default(0.0) @map("estimated_cost")
+  status        String
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("ai_usage_logs")
+}

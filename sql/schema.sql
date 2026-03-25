@@ -169,3 +169,35 @@ WITH CHECK (EXISTS (
   WHERE conversations.id = messages.conversation_id 
   AND businesses.owner_id = auth.uid()
 ));
+
+-- AI Usage Logs for Observability
+CREATE TABLE IF NOT EXISTS ai_usage_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    business_id UUID REFERENCES businesses(id) ON DELETE SET NULL,
+    request_type TEXT NOT NULL CHECK (request_type IN ('chat', 'voice', 'system')),
+    provider TEXT NOT NULL,
+    model TEXT NOT NULL,
+    input_size INTEGER DEFAULT 0,
+    output_size INTEGER DEFAULT 0,
+    latency INTEGER DEFAULT 0, -- in milliseconds
+    estimated_cost DECIMAL(10, 6) DEFAULT 0,
+    status TEXT NOT NULL CHECK (status IN ('success', 'error')),
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_usage_business_id ON ai_usage_logs(business_id);
+CREATE INDEX IF NOT EXISTS idx_ai_usage_created_at ON ai_usage_logs(created_at);
+
+-- Policies for AI Usage Logs
+ALTER TABLE ai_usage_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Business owners can view their own AI usage logs" ON ai_usage_logs;
+CREATE POLICY "Business owners can view their own AI usage logs" 
+ON ai_usage_logs FOR SELECT 
+USING (EXISTS (
+  SELECT 1 FROM businesses 
+  WHERE businesses.id = ai_usage_logs.business_id 
+  AND businesses.owner_id = auth.uid()
+));
