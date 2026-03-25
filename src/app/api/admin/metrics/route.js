@@ -20,13 +20,13 @@ export async function GET() {
     // 2. Get total conversations
     const totalConversations = (await db.query('SELECT count(*) FROM conversations')).rows[0].count;
 
-    // 3. Get total platform cost (SUM of all usage_logs + ai_usage_logs)
+    // 3. Get total platform cost (SUM of all legacy 'usage_logs' + new high-fidelity 'ai_usage_logs')
     const totalUsageCost = parseFloat((await db.query('SELECT SUM(cost_estimate) as total FROM ai_usage_logs')).rows[0]?.total || 0);
     const totalLegacyCost = parseFloat((await db.query('SELECT SUM(cost_estimate) as total FROM usage_logs')).rows[0]?.total || 0);
     const totalCost = totalUsageCost + totalLegacyCost;
 
-    // 4. Get total revenue (SUM of credit purchases)
-    const totalRevenueResult = await db.query("SELECT SUM(ABS(amount)) as total FROM transactions WHERE type = 'credit_purchase'");
+    // 4. Get total revenue (SUM of VP and legacy credit purchases)
+    const totalRevenueResult = await db.query("SELECT SUM(ABS(amount)) as total FROM transactions WHERE type IN ('vp_purchase', 'credit_purchase')");
     const totalRevenue = parseFloat(totalRevenueResult.rows[0]?.total || 0);
 
     // 5. Get Top Businesses with Financials (Merging both log tables)
@@ -35,7 +35,7 @@ export async function GET() {
         b.id, b.name, 
         COALESCE((SELECT SUM(cost_estimate) FROM ai_usage_logs WHERE business_id = b.id), 0) +
         COALESCE((SELECT SUM(cost_estimate) FROM usage_logs WHERE business_id = b.id), 0) as infra_cost,
-        COALESCE((SELECT SUM(ABS(amount)) FROM transactions t WHERE t.business_id = b.id AND t.type = 'credit_purchase'), 0) as revenue
+        COALESCE((SELECT SUM(ABS(amount)) FROM transactions t WHERE t.business_id = b.id AND t.type IN ('vp_purchase', 'credit_purchase')), 0) as revenue
       FROM businesses b
       GROUP BY b.id, b.name
       ORDER BY infra_cost DESC NULLS LAST
