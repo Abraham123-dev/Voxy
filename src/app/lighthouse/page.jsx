@@ -10,10 +10,15 @@ import {
   TrendingUp, 
   Zap,
   Terminal,
-  Loader2
+  Loader2,
+  Cpu
 } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Cell
+} from 'recharts';
 
 const AdminStatCard = ({ title, value, description, icon: Icon, colorClass }) => (
   <div className="bg-[#0A0A0A] border border-white/5 p-6 rounded-2xl flex flex-col h-full hover:border-white/10 transition-all group">
@@ -33,11 +38,16 @@ const AdminStatCard = ({ title, value, description, icon: Icon, colorClass }) =>
 
 export default function LighthouseOverviewPage() {
   const [stats, setStats] = useState(null);
+  const [aiMetrics, setAiMetrics] = useState(null);
+  const [aiUsage, setAiUsage] = useState([]);
+  const [aiCostData, setAiCostData] = useState([]);
+  const [aiTypeData, setAiTypeData] = useState([]);
   const [liveLogs, setLiveLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
+    fetchAIMetrics();
 
     // SSE Real-time updates
     const eventSource = new EventSource('/api/admin/live');
@@ -46,6 +56,7 @@ export default function LighthouseOverviewPage() {
       if (type === 'usage') {
         setLiveLogs(prev => [data, ...prev].slice(0, 10));
         fetchStats(); // Refresh stats when new usage occurs
+        fetchAIMetrics(); // Refresh AI stats too
       }
     };
 
@@ -56,7 +67,6 @@ export default function LighthouseOverviewPage() {
     try {
       const res = await fetch('/api/admin/metrics');
       const data = await res.json();
-      // Re-mapping top businesses for UI consistency
       setStats({
         totalBusinesses: data.totalBusinesses || 0,
         activeBusinesses: data.activeBusinesses || 0,
@@ -68,6 +78,29 @@ export default function LighthouseOverviewPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAIMetrics = async () => {
+     try {
+       const [metRes, useRes, cstRes] = await Promise.all([
+         fetch('/api/admin/ai/metrics'),
+         fetch('/api/admin/ai/usage'),
+         fetch('/api/admin/ai/cost')
+       ]);
+       
+       const metData = await metRes.json();
+       const useData = await useRes.json();
+       const cstData = await cstRes.json();
+
+       if (metData.success) setAiMetrics(metData.metrics);
+       if (useData.success) setAiUsage([...useData.usage].reverse());
+       if (cstData.success) {
+         setAiCostData([...cstData.dailyCost].reverse());
+         setAiTypeData(cstData.typeCost);
+       }
+     } catch (err) {
+       console.error('Failed to fetch AI metrics:', err);
+     }
   };
 
   if (loading && !stats) {
@@ -107,7 +140,7 @@ export default function LighthouseOverviewPage() {
 
   return (
     <DashboardLayout title="Admin Home">
-      <div className="max-w-[1400px] mx-auto pt-8 pb-32 space-y-10">
+      <div className="max-w-[1400px] mx-auto pt-8 pb-32 space-y-12">
         
         {/* Page Header */}
         <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-4 duration-700">
@@ -124,9 +157,117 @@ export default function LighthouseOverviewPage() {
           ))}
         </div>
 
+        {/* AI Observability Section (NEW) */}
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
+           <div className="flex items-center gap-4">
+              <div className="size-10 rounded-2xl bg-voxy-primary/10 flex items-center justify-center text-voxy-primary shadow-lg shadow-voxy-primary/5">
+                 <Cpu size={20} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white tracking-tight">AI Observability</h2>
+                <p className="text-[13px] text-zinc-500 font-medium">Low-latency tracking across all AI interfaces</p>
+              </div>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <AdminStatCard 
+                title="AI Operations" 
+                value={aiMetrics?.totalRequests?.toLocaleString() || '0'} 
+                description="Total inference requests"
+                icon={Zap}
+                colorClass="text-amber-400"
+              />
+              <AdminStatCard 
+                title="Model Spend" 
+                value={`$${(aiMetrics?.totalCost || 0).toFixed(4)}`} 
+                description="Estimated provider costs"
+                icon={DollarSign}
+                colorClass="text-emerald-500"
+              />
+              <AdminStatCard 
+                title="Network Latency" 
+                value={`${Math.round(aiMetrics?.avgLatency || 0)}ms`} 
+                description="Average response time"
+                icon={Activity}
+                colorClass="text-blue-400"
+              />
+           </div>
+
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Usage Chart */}
+              <div className="bg-[#0A0A0A] border border-white/5 p-8 rounded-3xl space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Inference Volume (Daily)</h3>
+                  <Badge variant="outline" className="text-[10px] border-blue-500/20 text-blue-400 bg-blue-500/5">Live Stream</Badge>
+                </div>
+                <div className="h-[250px] w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={aiUsage}>
+                      <defs>
+                        <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff03" vertical={false} />
+                      <XAxis dataKey="date" stroke="#3f3f46" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} />
+                      <YAxis stroke="#3f3f46" fontSize={10} tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
+                      <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#usageGradient)" animationDuration={1500} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Cost Chart */}
+              <div className="bg-[#0A0A0A] border border-white/5 p-8 rounded-3xl space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Aggregate Spend (Daily)</h3>
+                  <Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-400 bg-emerald-500/5">Finance</Badge>
+                </div>
+                <div className="h-[250px] w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={aiCostData}>
+                      <defs>
+                        <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff03" vertical={false} />
+                      <XAxis dataKey="date" stroke="#3f3f46" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} />
+                      <YAxis stroke="#3f3f46" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val.toFixed(2)}`} />
+                      <Tooltip contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
+                      <Area type="monotone" dataKey="cost" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#costGradient)" animationDuration={1500} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+           </div>
+
+           <div className="bg-[#0A0A0A] border border-white/5 p-8 rounded-3xl">
+              <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-8">System Distribution (Cost by Type)</h3>
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart layout="vertical" data={aiTypeData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff03" horizontal={false} />
+                    <XAxis type="number" stroke="#3f3f46" fontSize={10} hide />
+                    <YAxis dataKey="type" type="category" stroke="#fff" fontSize={12} width={80} tickLine={false} axisLine={false} className="font-bold capitalize" />
+                    <Tooltip cursor={{ fill: '#ffffff02' }} contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
+                    <Bar dataKey="cost" radius={[0, 8, 8, 0]} barSize={24} animationDuration={1200}>
+                      {aiTypeData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#8b5cf6' : '#ec4899'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+           </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
            {/* Top Businesses List */}
-           <div className="lg:col-span-2 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+           <div className="lg:col-span-2 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
               <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
                  <div className="p-8 border-b border-white/[0.03] flex items-center justify-between">
                    <div>
@@ -166,8 +307,8 @@ export default function LighthouseOverviewPage() {
               </div>
            </div>
 
-           {/* Live Activity Log (NEW) */}
-           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
+           {/* Live Activity Log */}
+           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-400">
               <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-8 h-full flex flex-col min-h-[500px]">
                  <div className="flex items-center gap-3 mb-8">
                     <div className="size-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
