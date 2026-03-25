@@ -177,6 +177,24 @@ export default function WalletPage() {
                    ))}
                 </div>
 
+                {/* Dynamic Price Preview */}
+                <div className="bg-zinc-50 dark:bg-white/[0.03] rounded-2xl p-4 flex justify-between items-center border border-zinc-100 dark:border-white/5 animate-in slide-in-from-bottom-2 duration-300">
+                   <div>
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Total Price</p>
+                      <p className="text-xl font-black text-voxy-primary tabular-nums">
+                        ₦{(purchaseAmount * (purchaseAmount >= 1000 ? 8 : purchaseAmount >= 500 ? 9 : 10)).toLocaleString()}
+                      </p>
+                   </div>
+                   {purchaseAmount >= 500 && (
+                      <div className="text-right">
+                         <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Savings</p>
+                         <p className="text-xs font-black text-emerald-500">
+                           {purchaseAmount >= 1000 ? '20% OFF' : '10% OFF'}
+                         </p>
+                      </div>
+                   )}
+                </div>
+
                 <div className="pt-2">
                   <button 
                     onClick={handlePurchase}

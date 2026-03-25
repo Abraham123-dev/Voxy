@@ -27,8 +27,16 @@ export async function POST(req) {
     const business = bizRes.rows[0];
     if (!business) return NextResponse.json({ error: 'Business not found' }, { status: 404 });
 
-    // 2. Calculate Price (Amount in Kobo)
-    const priceInNaira = amount * CREDIT_PRICE_NGN;
+    // 2. Calculate Tiered Price (NGN)
+    let priceInNaira = 0;
+    if (amount >= 1000) {
+      priceInNaira = amount * 8; // Scale Bundle (20% off)
+    } else if (amount >= 500) {
+      priceInNaira = amount * 9; // Growth Bundle (10% off)
+    } else {
+      priceInNaira = amount * 10; // Starter/Base price
+    }
+
     const amountInKobo = priceInNaira * 100;
 
     // 3. Initialize Paystack
