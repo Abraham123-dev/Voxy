@@ -162,9 +162,3 @@ GET /api/admin/ai/cost
 * Demo clearly shows tracking working
 
 ---
-
-## Hackathon Positioning
-
-“We implemented a production-grade observability layer inspired by systems like Cencori to ensure scalable and cost-efficient AI usage.”
-
----

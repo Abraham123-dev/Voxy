@@ -18,16 +18,22 @@ export async function GET(request) {
       const encoder = new TextEncoder();
 
       const sendEvent = (data) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        if (request.signal.aborted) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        } catch (e) {
+          console.warn('[SSE] Controller disconnected');
+        }
       };
 
-      // Poll for new usage logs and alerts every 3 seconds for simplicity
-      // In a more complex setup, we'd use Supabase Realtime listeners
       let lastChecked = new Date().toISOString();
 
       const interval = setInterval(async () => {
+        if (request.signal.aborted) {
+          clearInterval(interval);
+          return;
+        }
         try {
-          // Check for new alerts
           const { data: alerts } = await supabase
             .from('alerts')
             .select('*, businesses(name)')
@@ -38,7 +44,6 @@ export async function GET(request) {
             alerts.forEach(alert => sendEvent({ type: 'alert', data: alert }));
           }
 
-          // Check for new usage logs
           const { data: logs } = await supabase
             .from('usage_logs')
             .select('*, businesses(name)')
@@ -55,15 +60,20 @@ export async function GET(request) {
         }
       }, 3000);
 
-      // Keep connection alive
       const keepAlive = setInterval(() => {
-        controller.enqueue(encoder.encode(': keep-alive\n\n'));
+        if (!request.signal.aborted) {
+          try {
+            controller.enqueue(encoder.encode(': keep-alive\n\n'));
+          } catch (e) {}
+        } else {
+          clearInterval(keepAlive);
+        }
       }, 30000);
 
       request.signal.addEventListener('abort', () => {
         clearInterval(interval);
         clearInterval(keepAlive);
-        controller.close();
+        try { controller.close(); } catch (e) {}
       });
     },
   });

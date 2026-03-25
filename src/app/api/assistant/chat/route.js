@@ -54,7 +54,7 @@ export async function POST(req) {
     }
 
     // 3. Build System Instructions (Consolidated)
-    const systemInstruction = `You are an AI for ${conv.business_name}. Tone: ${conv.assistant_tone}. Respond ONLY in ${detectedLanguage}. ${conv.assistant_instructions}`;
+    const systemInstruction = `You are an AI for ${conv.business_name}. Tone: ${conv.assistant_tone}. Respond ONLY in ${detectedLanguage}. ${conv.assistant_instructions}. STRICT: Use ONLY Nigerian Naira (₦) for pricing. NEVER use the dollar sign ($).`;
     const normalizedPayload = await buildAIPayload(conversationId, !!summary);
 
     // 4. Generate AI Response (Primary Logic)
